@@ -1,0 +1,281 @@
+<html><head><meta charset="utf-8"/><title>编写REST API</title></head><body><h1>编写REST API</h1><div class="x-wiki-content x-main-content">
+ <h3>
+  REST API规范
+ </h3>
+ <p>
+  编写REST API，实际上就是编写处理HTTP请求的async函数，不过，REST请求和普通的HTTP请求有几个特殊的地方：
+ </p>
+ <ol>
+  <li>
+   REST请求仍然是标准的HTTP请求，但是，除了GET请求外，POST、PUT等请求的body是JSON数据格式，请求的
+   <code>
+    Content-Type
+   </code>
+   为
+   <code>
+    application/json
+   </code>
+   ；
+  </li>
+  <li>
+   REST响应返回的结果是JSON数据格式，因此，响应的
+   <code>
+    Content-Type
+   </code>
+   也是
+   <code>
+    application/json
+   </code>
+   。
+  </li>
+ </ol>
+ <p>
+  REST规范定义了资源的通用访问格式，虽然它不是一个强制要求，但遵守该规范可以让人易于理解。
+ </p>
+ <p>
+  例如，商品Product就是一种资源。获取所有Product的URL如下：
+ </p>
+ <pre><code>GET /api/products
+</code></pre>
+ <p>
+  而获取某个指定的Product，例如，id为
+  <code>
+   123
+  </code>
+  的Product，其URL如下：
+ </p>
+ <pre><code>GET /api/products/123
+</code></pre>
+ <p>
+  新建一个Product使用POST请求，JSON数据包含在body中，URL如下：
+ </p>
+ <pre><code>POST /api/products
+</code></pre>
+ <p>
+  更新一个Product使用PUT请求，例如，更新id为
+  <code>
+   123
+  </code>
+  的Product，其URL如下：
+ </p>
+ <pre><code>PUT /api/products/123
+</code></pre>
+ <p>
+  删除一个Product使用DELETE请求，例如，删除id为
+  <code>
+   123
+  </code>
+  的Product，其URL如下：
+ </p>
+ <pre><code>DELETE /api/products/123
+</code></pre>
+ <p>
+  资源还可以按层次组织。例如，获取某个Product的所有评论，使用：
+ </p>
+ <pre><code>GET /api/products/123/reviews
+</code></pre>
+ <p>
+  当我们只需要获取部分数据时，可通过参数限制返回的结果集，例如，返回第2页评论，每页10项，按时间排序：
+ </p>
+ <pre><code>GET /api/products/123/reviews?page=2&amp;size=10&amp;sort=time
+</code></pre>
+ <h3>
+  koa处理REST
+ </h3>
+ <p>
+  既然我们已经使用koa作为Web框架处理HTTP请求，因此，我们仍然可以在koa中响应并处理REST请求。
+ </p>
+ <p>
+  我们先创建一个
+  <code>
+   rest-hello
+  </code>
+  的工程，结构如下：
+ </p>
+ <pre><code>rest-hello/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- controllers/
+|  |
+|  +- api.js &lt;-- REST API
+|
++- app.js &lt;-- 使用koa的js
+|
++- controller.js &lt;-- 扫描注册Controller
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  在
+  <code>
+   package.json
+  </code>
+  中，我们需要如下依赖包：
+ </p>
+ <pre><code>"dependencies": {
+    "koa": "2.0.0",
+    "koa-bodyparser": "3.2.0",
+    "koa-router": "7.0.0"
+}
+</code></pre>
+ <p>
+  运行
+  <code>
+   npm install
+  </code>
+  安装依赖包。
+ </p>
+ <p>
+  在
+  <code>
+   app.js
+  </code>
+  中，我们仍然使用标准的koa组件，并自动扫描加载
+  <code>
+   controllers
+  </code>
+  目录下的所有js文件：
+ </p>
+ <pre><code>const app = new Koa();
+
+const controller = require('./controller');
+
+// parse request body:
+app.use(bodyParser());
+
+// add controller:
+app.use(controller());
+
+app.listen(3000);
+console.log('app started at port 3000...');
+</code></pre>
+ <p>
+  注意到
+  <code>
+   app.use(bodyParser());
+  </code>
+  这个语句，它给koa安装了一个解析HTTP请求body的处理函数。如果HTTP请求是JSON数据，我们就可以通过
+  <code>
+   ctx.request.body
+  </code>
+  直接访问解析后的JavaScript对象。
+ </p>
+ <p>
+  下面我们编写
+  <code>
+   api.js
+  </code>
+  ，添加一个GET请求：
+ </p>
+ <pre><code>// 存储Product列表，相当于模拟数据库:
+var products = [{
+    name: 'iPhone',
+    price: 6999
+}, {
+    name: 'Kindle',
+    price: 999
+}];
+
+module.exports = {
+    'GET /api/products': async (ctx, next) =&gt; {
+        // 设置Content-Type:
+        ctx.response.type = 'application/json';
+        // 设置Response Body:
+        ctx.response.body = {
+            products: products
+        };
+    }
+}
+</code></pre>
+ <p>
+  在koa中，我们只需要给
+  <code>
+   ctx.response.body
+  </code>
+  赋值一个JavaScript对象，koa会自动把该对象序列化为JSON并输出到客户端。
+ </p>
+ <p>
+  我们在浏览器中访问
+  <code>
+   http://localhost:3000/api/products
+  </code>
+  ，可以得到如下输出：
+ </p>
+ <pre><code>{"products":[{"name":"iPhone","price":6999},{"name":"Kindle","price":999}]}
+</code></pre>
+ <p>
+  紧接着，我们再添加一个创建Product的API：
+ </p>
+ <pre><code>module.exports = {
+    'GET /api/products': async (ctx, next) =&gt; {
+        ...
+    },
+
+    'POST /api/products': async (ctx, next) =&gt; {
+        var p = {
+            name: ctx.request.body.name,
+            price: ctx.request.body.price
+        };
+        products.push(p);
+        ctx.response.type = 'application/json';
+        ctx.response.body = p;
+    }
+};
+</code></pre>
+ <p>
+  这个POST请求无法在浏览器中直接测试。但是我们可以通过
+  <code>
+   curl
+  </code>
+  命令在命令提示符窗口测试这个API。我们输入如下命令：
+ </p>
+ <pre><code>curl -H 'Content-Type: application/json' -X POST -d '{"name":"XBox","price":3999}' http://localhost:3000/api/products
+</code></pre>
+ <p>
+  得到的返回内容如下：
+ </p>
+ <pre><code>{"name":"XBox","price":3999}
+</code></pre>
+ <p>
+  我们再在浏览器中访问
+  <code>
+   http://localhost:3000/api/products
+  </code>
+  ，可以得到更新后的输出如下：
+ </p>
+ <pre><code>{"products":[{"name":"iPhone","price":6999},{"name":"Kindle","price":999},{"name":"XBox","price":3999}]}
+</code></pre>
+ <p>
+  可见，在koa中处理REST请求是非常简单的。
+  <code>
+   bodyParser()
+  </code>
+  这个middleware可以解析请求的JSON数据并绑定到
+  <code>
+   ctx.request.body
+  </code>
+  上，输出JSON时我们先指定
+  <code>
+   ctx.response.type = 'application/json'
+  </code>
+  ，然后把JavaScript对象赋值给
+  <code>
+   ctx.response.body
+  </code>
+  就完成了REST请求的处理。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/rest/rest-hello">
+   rest-hello
+  </a>
+ </p>
+</div>
+</body></html>

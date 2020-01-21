@@ -1,0 +1,476 @@
+<html><head><meta charset="utf-8"/><title>扩展</title></head><body><h1>扩展</h1><div class="x-wiki-content x-main-content">
+ <p>
+  当我们使用jQuery对象的方法时，由于jQuery对象可以操作一组DOM，而且支持链式操作，所以用起来非常方便。
+ </p>
+ <p>
+  但是jQuery内置的方法永远不可能满足所有的需求。比如，我们想要高亮显示某些DOM元素，用jQuery可以这么实现：
+ </p>
+ <pre><code>$('span.hl').css('backgroundColor', '#fffceb').css('color', '#d85030');
+
+$('p a.hl').css('backgroundColor', '#fffceb').css('color', '#d85030');
+</code></pre>
+ <p>
+  总是写重复代码可不好，万一以后还要修改字体就更麻烦了，能不能统一起来，写个
+  <code>
+   highlight()
+  </code>
+  方法？
+ </p>
+ <pre><code>$('span.hl').highlight();
+
+$('p a.hl').highlight();
+</code></pre>
+ <p>
+  答案是肯定的。我们可以扩展jQuery来实现自定义方法。将来如果要修改高亮的逻辑，只需修改一处扩展代码。这种方式也称为编写jQuery插件。
+ </p>
+ <h3>
+  编写jQuery插件
+ </h3>
+ <p>
+  给jQuery对象绑定一个新方法是通过扩展
+  <code>
+   $.fn
+  </code>
+  对象实现的。让我们来编写第一个扩展——
+  <code>
+   highlight1()
+  </code>
+  ：
+ </p>
+ <script>
+  $.fn.highlight1 = function () {
+    this.css('backgroundColor', '#fffceb').css('color', '#d85030');
+    return this;
+}
+ </script>
+ <pre><code>$.fn.highlight1 = function () {
+    // this已绑定为当前jQuery对象:
+    this.css('backgroundColor', '#fffceb').css('color', '#d85030');
+    return this;
+}
+</code></pre>
+ <p>
+  注意到函数内部的
+  <code>
+   this
+  </code>
+  在调用时被绑定为jQuery对象，所以函数内部代码可以正常调用所有jQuery对象的方法。
+ </p>
+ <p>
+  对于如下的HTML结构：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-highlight1"&gt;
+    &lt;p&gt;什么是&lt;span&gt;jQuery&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;&lt;span&gt;jQuery&lt;/span&gt;是目前最流行的&lt;span&gt;JavaScript&lt;/span&gt;库。&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  来测试一下
+  <code>
+   highlight1()
+  </code>
+  的效果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+$('#test-highlight1 span').highlight1();
+</code></pre>
+ <div id="test-highlight1" style="border: 1px solid #ccc; margin: 15px 0; padding: 15px;">
+  <p>
+   什么是
+   <span>
+    jQuery
+   </span>
+  </p>
+  <p>
+   <span>
+    jQuery
+   </span>
+   是目前最流行的
+   <span>
+    JavaScript
+   </span>
+   库。
+  </p>
+ </div>
+ <p>
+  细心的童鞋可能发现了，为什么最后要
+  <code>
+   return this;
+  </code>
+  ？因为jQuery对象支持链式操作，我们自己写的扩展方法也要能继续链式下去：
+ </p>
+ <pre><code>$('span.hl').highlight1().slideDown();
+</code></pre>
+ <p>
+  不然，用户调用的时候，就不得不把上面的代码拆成两行。
+ </p>
+ <p>
+  但是这个版本并不完美。有的用户希望高亮的颜色能自己来指定，怎么办？
+ </p>
+ <p>
+  我们可以给方法加个参数，让用户自己把参数用对象传进去。于是我们有了第二个版本的
+  <code>
+   highlight2()
+  </code>
+  ：
+ </p>
+ <script>
+  $.fn.highlight2 = function (options) {
+    var bgcolor = options && options.backgroundColor || '#fffceb';
+    var color = options && options.color || '#d85030';
+    this.css('backgroundColor', bgcolor).css('color', color);
+    return this;
+}
+ </script>
+ <pre><code>$.fn.highlight2 = function (options) {
+    // 要考虑到各种情况:
+    // options为undefined
+    // options只有部分key
+    var bgcolor = options &amp;&amp; options.backgroundColor || '#fffceb';
+    var color = options &amp;&amp; options.color || '#d85030';
+    this.css('backgroundColor', bgcolor).css('color', color);
+    return this;
+}
+</code></pre>
+ <p>
+  对于如下HTML结构：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-highlight2"&gt;
+    &lt;p&gt;什么是&lt;span&gt;jQuery&lt;/span&gt; &lt;span&gt;Plugin&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;编写&lt;span&gt;jQuery&lt;/span&gt; &lt;span&gt;Plugin&lt;/span&gt;可以用来扩展&lt;span&gt;jQuery&lt;/span&gt;的功能。&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  来实测一下带参数的
+  <code>
+   highlight2()
+  </code>
+  ：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+$('#test-highlight2 span').highlight2({
+    backgroundColor: '#00a8e6',
+    color: '#ffffff'
+});
+</code></pre>
+ <div id="test-highlight2" style="border: 1px solid #ccc; margin: 15px 0; padding: 15px;">
+  <p>
+   什么是
+   <span>
+    jQuery
+   </span>
+   <span>
+    Plugin
+   </span>
+  </p>
+  <p>
+   编写
+   <span>
+    jQuery
+   </span>
+   <span>
+    Plugin
+   </span>
+   可以用来扩展
+   <span>
+    jQuery
+   </span>
+   的功能。
+  </p>
+ </div>
+ <p>
+  对于默认值的处理，我们用了一个简单的
+  <code>
+   &amp;&amp;
+  </code>
+  和
+  <code>
+   ||
+  </code>
+  短路操作符，总能得到一个有效的值。
+ </p>
+ <p>
+  另一种方法是使用jQuery提供的辅助方法
+  <code>
+   $.extend(target, obj1, obj2, ...)
+  </code>
+  ，它把多个object对象的属性合并到第一个target对象中，遇到同名属性，总是使用靠后的对象的值，也就是越往后优先级越高：
+ </p>
+ <pre><code>// 把默认值和用户传入的options合并到对象{}中并返回:
+var opts = $.extend({}, {
+    backgroundColor: '#00a8e6',
+    color: '#ffffff'
+}, options);
+</code></pre>
+ <p>
+  紧接着用户对
+  <code>
+   highlight2()
+  </code>
+  提出了意见：每次调用都需要传入自定义的设置，能不能让我自己设定一个缺省值，以后的调用统一使用无参数的
+  <code>
+   highlight2()
+  </code>
+  ？
+ </p>
+ <p>
+  也就是说，我们设定的默认值应该能允许用户修改。
+ </p>
+ <p>
+  那默认值放哪比较合适？放全局变量肯定不合适，最佳地点是
+  <code>
+   $.fn.highlight2
+  </code>
+  这个函数对象本身。
+ </p>
+ <p>
+  于是最终版的
+  <code>
+   highlight()
+  </code>
+  终于诞生了：
+ </p>
+ <script>
+  $.fn.highlight = function (options) {
+    var opts = $.extend({}, $.fn.highlight.defaults, options);
+    this.css('backgroundColor', opts.backgroundColor).css('color', opts.color);
+    return this;
+}
+
+$.fn.highlight.defaults = {
+    color: '#d85030',
+    backgroundColor: '#fff8de'
+}
+ </script>
+ <pre><code>$.fn.highlight = function (options) {
+    // 合并默认值和用户设定值:
+    var opts = $.extend({}, $.fn.highlight.defaults, options);
+    this.css('backgroundColor', opts.backgroundColor).css('color', opts.color);
+    return this;
+}
+
+// 设定默认值:
+$.fn.highlight.defaults = {
+    color: '#d85030',
+    backgroundColor: '#fff8de'
+}
+</code></pre>
+ <p>
+  这次用户终于满意了。用户使用时，只需一次性设定默认值：
+ </p>
+ <pre><code>$.fn.highlight.defaults.color = '#fff';
+$.fn.highlight.defaults.backgroundColor = '#000';
+</code></pre>
+ <p>
+  然后就可以非常简单地调用
+  <code>
+   highlight()
+  </code>
+  了。
+ </p>
+ <p>
+  对如下的HTML结构：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-highlight"&gt;
+    &lt;p&gt;如何编写&lt;span&gt;jQuery&lt;/span&gt; &lt;span&gt;Plugin&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;编写&lt;span&gt;jQuery&lt;/span&gt; &lt;span&gt;Plugin&lt;/span&gt;，要设置&lt;span&gt;默认值&lt;/span&gt;，并允许用户修改&lt;span&gt;默认值&lt;/span&gt;，或者运行时传入&lt;span&gt;其他值&lt;/span&gt;。&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  实测一下修改默认值的效果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+$.fn.highlight.defaults.color = '#659f13';
+$.fn.highlight.defaults.backgroundColor = '#f2fae3';
+
+$('#test-highlight p:first-child span').highlight();
+
+$('#test-highlight p:last-child span').highlight({
+    color: '#dd1144'
+});
+</code></pre>
+ <div id="test-highlight" style="border: 1px solid #ccc; margin: 15px 0; padding: 15px;">
+  <p>
+   如何编写
+   <span>
+    jQuery
+   </span>
+   <span>
+    Plugin
+   </span>
+  </p>
+  <p>
+   编写
+   <span>
+    jQuery
+   </span>
+   <span>
+    Plugin
+   </span>
+   ，要设置
+   <span>
+    默认值
+   </span>
+   ，并允许用户修改
+   <span>
+    默认值
+   </span>
+   ，或者运行时传入
+   <span>
+    其他值
+   </span>
+   。
+  </p>
+ </div>
+ <p>
+  最终，我们得出编写一个jQuery插件的原则：
+ </p>
+ <ol>
+  <li>
+   给
+   <code>
+    $.fn
+   </code>
+   绑定函数，实现插件的代码逻辑；
+  </li>
+  <li>
+   插件函数最后要
+   <code>
+    return this;
+   </code>
+   以支持链式调用；
+  </li>
+  <li>
+   插件函数要有默认值，绑定在
+   <code>
+    $.fn.&lt;pluginName&gt;.defaults
+   </code>
+   上；
+  </li>
+  <li>
+   用户在调用时可传入设定值以便覆盖默认值。
+  </li>
+ </ol>
+ <h3>
+  针对特定元素的扩展
+ </h3>
+ <p>
+  我们知道jQuery对象的有些方法只能作用在特定DOM元素上，比如
+  <code>
+   submit()
+  </code>
+  方法只能针对
+  <code>
+   form
+  </code>
+  。如果我们编写的扩展只能针对某些类型的DOM元素，应该怎么写？
+ </p>
+ <p>
+  还记得jQuery的选择器支持
+  <code>
+   filter()
+  </code>
+  方法来过滤吗？我们可以借助这个方法来实现针对特定元素的扩展。
+ </p>
+ <p>
+  举个例子，现在我们要给所有指向外链的超链接加上跳转提示，怎么做？
+ </p>
+ <p>
+  先写出用户调用的代码：
+ </p>
+ <pre><code>$('#main a').external();
+</code></pre>
+ <p>
+  然后按照上面的方法编写一个
+  <code>
+   external
+  </code>
+  扩展：
+ </p>
+ <script>
+  $.fn.external = function () {
+    return this.filter('a').each(function () {
+        var a = $(this);
+        var url = a.attr('href');
+        if (url && (url.indexOf('http://')===0 || url.indexOf('https://')===0)) {
+            a.attr('href', '#0')
+             .removeAttr('target')
+             .append(' <i class="uk-icon-external-link"></i>')
+             .click(function () {
+                if(confirm('你确定要前往' + url + '？')) {
+                    window.open(url);
+                }
+            });
+        }
+    });
+}
+ </script>
+ <pre><code>$.fn.external = function () {
+    // return返回的each()返回结果，支持链式调用:
+    return this.filter('a').each(function () {
+        // 注意: each()内部的回调函数的this绑定为DOM本身!
+        var a = $(this);
+        var url = a.attr('href');
+        if (url &amp;&amp; (url.indexOf('http://')===0 || url.indexOf('https://')===0)) {
+            a.attr('href', '#0')
+             .removeAttr('target')
+             .append(' &lt;i class="uk-icon-external-link"&gt;&lt;/i&gt;')
+             .click(function () {
+                if(confirm('你确定要前往' + url + '？')) {
+                    window.open(url);
+                }
+            });
+        }
+    });
+}
+</code></pre>
+ <p>
+  对如下的HTML结构：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-external"&gt;
+    &lt;p&gt;如何学习&lt;a href="http://jquery.com"&gt;jQuery&lt;/a&gt;？&lt;/p&gt;
+    &lt;p&gt;首先，你要学习&lt;a href="/wiki/1022910821149312"&gt;JavaScript&lt;/a&gt;，并了解基本的&lt;a href="https://developer.mozilla.org/en-US/docs/Web/HTML"&gt;HTML&lt;/a&gt;。&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  实测外链效果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+$('#test-external a').external();
+</code></pre>
+ <div id="test-external" style="border: 1px solid #ccc; margin: 15px 0; padding: 15px;">
+  <p>
+   如何学习
+   <a href="http://jquery.com">
+    jQuery
+   </a>
+   ？
+  </p>
+  <p>
+   首先，你要学习
+   <a href="/wiki/1022910821149312">
+    JavaScript
+   </a>
+   ，并了解基本的
+   <a href="https://developer.mozilla.org/en-US/docs/Web/HTML">
+    HTML
+   </a>
+   。
+  </p>
+ </div>
+ <h3>
+  小结
+ </h3>
+ <p>
+  扩展jQuery对象的功能十分简单，但是我们要遵循jQuery的原则，编写的扩展方法能支持链式调用、具备默认值和过滤特定元素，使得扩展方法看上去和jQuery本身的方法没有什么区别。
+ </p>
+</div>
+</body></html>

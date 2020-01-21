@@ -1,0 +1,243 @@
+<html><head><meta charset="utf-8"/><title>Http测试</title></head><body><h1>Http测试</h1><div class="x-wiki-content x-main-content">
+ <p>
+  用mocha测试一个async函数是非常方便的。现在，当我们有了一个koa的Web应用程序时，我们怎么用mocha来自动化测试Web应用程序呢？
+ </p>
+ <p>
+  一个简单的想法就是在测试前启动koa的app，然后运行async测试，在测试代码中发送http请求，收到响应后检查结果，这样，一个基于http接口的测试就可以自动运行。
+ </p>
+ <p>
+  我们先创建一个最简单的koa应用，结构如下：
+ </p>
+ <pre><code>koa-test/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- app.js &lt;-- koa app文件
+|
++- start.js &lt;-- app启动入口
+|
++- test/ &lt;-- 存放所有test
+｜ ｜
+|  +- app-test.js &lt;-- 异步测试
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  这个koa应用和前面的koa应用稍有不同的是，
+  <code>
+   app.js
+  </code>
+  只负责创建
+  <code>
+   app
+  </code>
+  实例，并不监听端口：
+ </p>
+ <pre><code>// app.js
+
+const Koa = require('koa');
+
+const app = new Koa();
+
+app.use(async (ctx, next) =&gt; {
+    const start = new Date().getTime();
+    await next();
+    const ms = new Date().getTime() - start;
+    console.log(`${ctx.request.method} ${ctx.request.url}: ${ms}ms`);
+    ctx.response.set('X-Response-Time', `${ms}ms`);
+});
+
+app.use(async (ctx, next) =&gt; {
+    var name = ctx.request.query.name || 'world';
+    ctx.response.type = 'text/html';
+    ctx.response.body = `&lt;h1&gt;Hello, ${name}!&lt;/h1&gt;`;
+});
+
+module.exports = app;
+</code></pre>
+ <p>
+  而
+  <code>
+   start.js
+  </code>
+  负责真正启动应用：
+ </p>
+ <pre><code>// start.js
+
+const app = require('./app');
+
+app.listen(3000);
+console.log('app started at port 3000...');
+</code></pre>
+ <p>
+  这样做的目的是便于后面的测试。
+ </p>
+ <p>
+  紧接着，我们在
+  <code>
+   test
+  </code>
+  目录下创建
+  <code>
+   app-test.js
+  </code>
+  ，来测试这个koa应用。
+ </p>
+ <p>
+  在测试前，我们在
+  <code>
+   package.json
+  </code>
+  中添加
+  <code>
+   devDependencies
+  </code>
+  ，除了mocha外，我们还需要一个简单而强大的测试模块
+  <code>
+   supertest
+  </code>
+  ：
+ </p>
+ <pre><code>{
+    ...
+    "devDependencies": {
+        "mocha": "3.0.2",
+        "supertest": "3.0.0"
+    }
+}
+</code></pre>
+ <p>
+  运行
+  <code>
+   npm install
+  </code>
+  后，我们开始编写测试：
+ </p>
+ <pre><code>// app-test.js
+
+const
+    request = require('supertest'),
+    app = require('../app');
+
+describe('#test koa app', () =&gt; {
+
+    let server = app.listen(9900);
+
+    describe('#test server', () =&gt; {
+
+        it('#test GET /', async () =&gt; {
+            let res = await request(server)
+                .get('/')
+                .expect('Content-Type', /text\/html/)
+                .expect(200, '&lt;h1&gt;Hello, world!&lt;/h1&gt;');
+        });
+
+        it('#test GET /path?name=Bob', async () =&gt; {
+            let res = await request(server)
+                .get('/path?name=Bob')
+                .expect('Content-Type', /text\/html/)
+                .expect(200, '&lt;h1&gt;Hello, Bob!&lt;/h1&gt;');
+        });
+    });
+});
+</code></pre>
+ <p>
+  在测试中，我们首先导入
+  <code>
+   supertest
+  </code>
+  模块，然后导入
+  <code>
+   app
+  </code>
+  模块，注意我们已经在
+  <code>
+   app.js
+  </code>
+  中移除了
+  <code>
+   app.listen(3000);
+  </code>
+  语句，所以，这里我们用：
+ </p>
+ <pre><code>let server = app.listen(9900);
+</code></pre>
+ <p>
+  让
+  <code>
+   app
+  </code>
+  实例监听在
+  <code>
+   9900
+  </code>
+  端口上，并且获得返回的
+  <code>
+   server
+  </code>
+  实例。
+ </p>
+ <p>
+  在测试代码中，我们使用：
+ </p>
+ <pre><code>let res = await request(server).get('/');
+</code></pre>
+ <p>
+  就可以构造一个GET请求，发送给koa的应用，然后获得响应。
+ </p>
+ <p>
+  可以手动检查响应对象，例如，
+  <code>
+   res.body
+  </code>
+  ，还可以利用
+  <code>
+   supertest
+  </code>
+  提供的
+  <code>
+   expect()
+  </code>
+  更方便地断言响应的HTTP代码、返回内容和HTTP头。断言HTTP头时可用使用正则表达式。例如，下面的断言：
+ </p>
+ <pre><code>.expect('Content-Type', /text\/html/)
+</code></pre>
+ <p>
+  可用成功匹配到
+  <code>
+   Content-Type
+  </code>
+  为
+  <code>
+   text/html
+  </code>
+  、
+  <code>
+   text/html; charset=utf-8
+  </code>
+  等值。
+ </p>
+ <p>
+  当所有测试运行结束后，
+  <code>
+   app
+  </code>
+  实例会自动关闭，无需清理。
+ </p>
+ <p>
+  利用mocha的异步测试，配合supertest，我们可以用简单的代码编写端到端的HTTP自动化测试。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/test/koa-test">
+   koa-test
+  </a>
+ </p>
+</div>
+</body></html>

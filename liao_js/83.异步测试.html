@@ -1,0 +1,231 @@
+<html><head><meta charset="utf-8"/><title>异步测试</title></head><body><h1>异步测试</h1><div class="x-wiki-content x-main-content">
+ <p>
+  用mocha测试一个函数是非常简单的，但是，在JavaScript的世界中，更多的时候，我们编写的是异步代码，所以，我们需要用mocha测试异步函数。
+ </p>
+ <p>
+  我们把上一节的
+  <code>
+   hello-test
+  </code>
+  工程复制一份，重命名为
+  <code>
+   async-test
+  </code>
+  ，然后，把
+  <code>
+   hello.js
+  </code>
+  改造为异步函数：
+ </p>
+ <pre><code>const fs = require('mz/fs');
+
+// a simple async function:
+module.exports = async () =&gt; {
+    let expression = await fs.readFile('./data.txt', 'utf-8');
+    let fn = new Function('return ' + expression);
+    let r = fn();
+    console.log(`Calculate: ${expression} = ${r}`);
+    return r;
+};
+</code></pre>
+ <p>
+  这个async函数通过读取
+  <code>
+   data.txt
+  </code>
+  的内容获取表达式，这样它就变成了异步。我们编写一个
+  <code>
+   data.txt
+  </code>
+  文件，内容如下：
+ </p>
+ <pre><code>1 + (2 + 4) * (9 - 2) / 3
+</code></pre>
+ <p>
+  别忘了在
+  <code>
+   package.json
+  </code>
+  中添加依赖包：
+ </p>
+ <pre><code>"dependencies": {
+    "mz": "2.4.0"
+},
+</code></pre>
+ <p>
+  紧接着，我们在
+  <code>
+   test
+  </code>
+  目录中添加一个
+  <code>
+   await-test.js
+  </code>
+  ，测试
+  <code>
+   hello.js
+  </code>
+  的async函数。
+ </p>
+ <p>
+  我们先看看mocha如何实现异步测试。
+ </p>
+ <p>
+  如果要测试同步函数，我们传入无参数函数即可：
+ </p>
+ <pre><code>it('test sync function', function () {
+    // TODO:
+    assert(true);
+});
+</code></pre>
+ <p>
+  如果要测试异步函数，我们要传入的函数需要带一个参数，通常命名为
+  <code>
+   done
+  </code>
+  ：
+ </p>
+ <pre><code>it('test async function', function (done) {
+    fs.readFile('filepath', function (err, data) {
+        if (err) {
+            done(err);
+        } else {
+            done();
+        }
+    });
+});
+</code></pre>
+ <p>
+  测试异步函数需要在函数内部手动调用
+  <code>
+   done()
+  </code>
+  表示测试成功，
+  <code>
+   done(err)
+  </code>
+  表示测试出错。
+ </p>
+ <p>
+  对于用ES7的async编写的函数，我们可以这么写：
+ </p>
+ <pre><code>it('#async with done', (done) =&gt; {
+    (async function () {
+        try {
+            let r = await hello();
+            assert.strictEqual(r, 15);
+            done();
+        } catch (err) {
+            done(err);
+        }
+    })();
+});
+</code></pre>
+ <p>
+  但是用try...catch太麻烦。还有一种更简单的写法，就是直接把async函数当成同步函数来测试：
+ </p>
+ <pre><code>it('#async function', async () =&gt; {
+    let r = await hello();
+    assert.strictEqual(r, 15);
+});
+</code></pre>
+ <p>
+  这么写异步测试，太简单了有木有！
+ </p>
+ <p>
+  我们把上一个
+  <code>
+   hello-test
+  </code>
+  工程复制为
+  <code>
+   async-test
+  </code>
+  ，结构如下：
+ </p>
+ <pre><code>async-test/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- hello.js &lt;-- 待测试js文件
+|
++- data.txt &lt;-- 数据文件
+|
++- test/ &lt;-- 存放所有test
+｜ ｜
+|  +- await-test.js &lt;-- 异步测试
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  现在，在命令行窗口运行命令
+  <code>
+   node_modules\mocha\bin\mocha
+  </code>
+  ，测试就可以正常执行：
+ </p>
+ <pre><code>  #async hello
+    #asyncCalculate()
+Calculate: 1 + (2 + 4) * (9 - 2) / 3 = 15
+      ✓ #async function
+  1 passing (11ms)
+</code></pre>
+ <p>
+  第二种方法是在
+  <code>
+   package.json
+  </code>
+  中把
+  <code>
+   script
+  </code>
+  改为：
+ </p>
+ <pre><code>"scripts": {
+    "test": "mocha"
+}
+</code></pre>
+ <p>
+  这样就可以在命令行窗口通过
+  <code>
+   npm test
+  </code>
+  执行测试。
+ </p>
+ <p>
+  第三种方法是在VS Code配置文件中把
+  <code>
+   program
+  </code>
+  改为：
+ </p>
+ <pre><code>"program": "${workspaceRoot}/node_modules/mocha/bin/mocha"
+</code></pre>
+ <p>
+  这样就可以在VS Code中直接运行测试。
+ </p>
+ <p>
+  编写异步代码时，我们要坚持使用
+  <code>
+   async
+  </code>
+  和
+  <code>
+   await
+  </code>
+  关键字，这样，编写测试也同样简单。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/test/async-test">
+   async-test
+  </a>
+ </p>
+</div>
+</body></html>

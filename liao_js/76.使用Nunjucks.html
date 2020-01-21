@@ -1,0 +1,409 @@
+<html><head><meta charset="utf-8"/><title>使用Nunjucks</title></head><body><h1>使用Nunjucks</h1><div class="x-wiki-content x-main-content">
+ <h3>
+  Nunjucks
+ </h3>
+ <p>
+  Nunjucks是什么东东？其实它是一个模板引擎。
+ </p>
+ <p>
+  那什么是模板引擎？
+ </p>
+ <p>
+  模板引擎就是基于模板配合数据构造出字符串输出的一个组件。比如下面的函数就是一个模板引擎：
+ </p>
+ <pre><code>function examResult (data) {
+    return `${data.name}同学一年级期末考试语文${data.chinese}分，数学${data.math}分，位于年级第${data.ranking}名。`
+}
+</code></pre>
+ <p>
+  如果我们输入数据如下：
+ </p>
+ <pre><code>examResult({
+    name: '小明',
+    chinese: 78,
+    math: 87,
+    ranking: 999
+});
+</code></pre>
+ <p>
+  该模板引擎把模板字符串里面对应的变量替换以后，就可以得到以下输出：
+ </p>
+ <pre><code>小明同学一年级期末考试语文78分，数学87分，位于年级第999名。
+</code></pre>
+ <p>
+  模板引擎最常见的输出就是输出网页，也就是HTML文本。当然，也可以输出任意格式的文本，比如Text，XML，Markdown等等。
+ </p>
+ <p>
+  有同学要问了：既然JavaScript的模板字符串可以实现模板功能，那为什么我们还需要另外的模板引擎？
+ </p>
+ <p>
+  因为JavaScript的模板字符串必须写在JavaScript代码中，要想写出新浪首页这样复杂的页面，是非常困难的。
+ </p>
+ <p>
+  输出HTML有几个特别重要的问题需要考虑：
+ </p>
+ <h4>
+  转义
+ </h4>
+ <p>
+  对特殊字符要转义，避免受到XSS攻击。比如，如果变量
+  <code>
+   name
+  </code>
+  的值不是
+  <code>
+   小明
+  </code>
+  ，而是
+  <code>
+   小明&lt;script&gt;...&lt;/script&gt;
+  </code>
+  ，模板引擎输出的HTML到了浏览器，就会自动执行恶意JavaScript代码。
+ </p>
+ <h4>
+  格式化
+ </h4>
+ <p>
+  对不同类型的变量要格式化，比如，货币需要变成
+  <code>
+   12,345.00
+  </code>
+  这样的格式，日期需要变成
+  <code>
+   2016-01-01
+  </code>
+  这样的格式。
+ </p>
+ <h4>
+  简单逻辑
+ </h4>
+ <p>
+  模板还需要能执行一些简单逻辑，比如，要按条件输出内容，需要if实现如下输出：
+ </p>
+ <pre><code>{{ name }}同学，
+{% if score &gt;= 90 %}
+    成绩优秀，应该奖励
+{% elif score &gt;=60 %}
+    成绩良好，继续努力
+{% else %}
+    不及格，建议回家打屁股
+{% endif %}
+</code></pre>
+ <p>
+  所以，我们需要一个功能强大的模板引擎，来完成页面输出的功能。
+ </p>
+ <h3>
+  Nunjucks
+ </h3>
+ <p>
+  我们选择Nunjucks作为模板引擎。Nunjucks是Mozilla开发的一个纯JavaScript编写的模板引擎，既可以用在Node环境下，又可以运行在浏览器端。但是，主要还是运行在Node环境下，因为浏览器端有更好的模板解决方案，例如MVVM框架。
+ </p>
+ <p>
+  如果你使用过Python的模板引擎
+  <a href="/wiki/1016959663602400/1017806952856928">
+   jinja2
+  </a>
+  ，那么使用Nunjucks就非常简单，两者的语法几乎是一模一样的，因为Nunjucks就是用JavaScript重新实现了jinjia2。
+ </p>
+ <p>
+  从上面的例子我们可以看到，虽然模板引擎内部可能非常复杂，但是使用一个模板引擎是非常简单的，因为本质上我们只需要构造这样一个函数：
+ </p>
+ <pre><code>function render(view, model) {
+    // TODO:...
+}
+</code></pre>
+ <p>
+  其中，
+  <code>
+   view
+  </code>
+  是模板的名称（又称为视图），因为可能存在多个模板，需要选择其中一个。
+  <code>
+   model
+  </code>
+  就是数据，在JavaScript中，它就是一个简单的Object。
+  <code>
+   render
+  </code>
+  函数返回一个字符串，就是模板的输出。
+ </p>
+ <p>
+  下面我们来使用Nunjucks这个模板引擎来编写几个HTML模板，并且用实际数据来渲染模板并获得最终的HTML输出。
+ </p>
+ <p>
+  我们创建一个
+  <code>
+   use-nunjucks
+  </code>
+  的VS Code工程结构如下：
+ </p>
+ <pre><code>use-nunjucks/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- views/
+|  |
+|  +- hello.html &lt;-- HTML模板文件
+|
++- app.js &lt;-- 入口js
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  其中，模板文件存放在
+  <code>
+   views
+  </code>
+  目录中。
+ </p>
+ <p>
+  我们先在
+  <code>
+   package.json
+  </code>
+  中添加
+  <code>
+   nunjucks
+  </code>
+  的依赖：
+ </p>
+ <pre><code>"nunjucks": "2.4.2"
+</code></pre>
+ <p>
+  注意，模板引擎是可以独立使用的，并不需要依赖koa。用
+  <code>
+   npm install
+  </code>
+  安装所有依赖包。
+ </p>
+ <p>
+  紧接着，我们要编写使用Nunjucks的函数
+  <code>
+   render
+  </code>
+  。怎么写？方法是查看Nunjucks的
+  <a href="http://mozilla.github.io/nunjucks/">
+   官方文档
+  </a>
+  ，仔细阅读后，在
+  <code>
+   app.js
+  </code>
+  中编写代码如下：
+ </p>
+ <pre><code>const nunjucks = require('nunjucks');
+
+function createEnv(path, opts) {
+    var
+        autoescape = opts.autoescape === undefined ? true : opts.autoescape,
+        noCache = opts.noCache || false,
+        watch = opts.watch || false,
+        throwOnUndefined = opts.throwOnUndefined || false,
+        env = new nunjucks.Environment(
+            new nunjucks.FileSystemLoader('views', {
+                noCache: noCache,
+                watch: watch,
+            }), {
+                autoescape: autoescape,
+                throwOnUndefined: throwOnUndefined
+            });
+    if (opts.filters) {
+        for (var f in opts.filters) {
+            env.addFilter(f, opts.filters[f]);
+        }
+    }
+    return env;
+}
+
+var env = createEnv('views', {
+    watch: true,
+    filters: {
+        hex: function (n) {
+            return '0x' + n.toString(16);
+        }
+    }
+});
+</code></pre>
+ <p>
+  变量
+  <code>
+   env
+  </code>
+  就表示Nunjucks模板引擎对象，它有一个
+  <code>
+   render(view, model)
+  </code>
+  方法，正好传入
+  <code>
+   view
+  </code>
+  和
+  <code>
+   model
+  </code>
+  两个参数，并返回字符串。
+ </p>
+ <p>
+  创建
+  <code>
+   env
+  </code>
+  需要的参数可以查看文档获知。我们用
+  <code>
+   autoescape = opts.autoescape &amp;&amp; true
+  </code>
+  这样的代码给每个参数加上默认值，最后使用
+  <code>
+   new nunjucks.FileSystemLoader('views')
+  </code>
+  创建一个文件系统加载器，从
+  <code>
+   views
+  </code>
+  目录读取模板。
+ </p>
+ <p>
+  我们编写一个
+  <code>
+   hello.html
+  </code>
+  模板文件，放到
+  <code>
+   views
+  </code>
+  目录下，内容如下：
+ </p>
+ <pre><code>&lt;h1&gt;Hello {{ name }}&lt;/h1&gt;
+</code></pre>
+ <p>
+  然后，我们就可以用下面的代码来渲染这个模板：
+ </p>
+ <pre><code>var s = env.render('hello.html', { name: '小明' });
+console.log(s);
+</code></pre>
+ <p>
+  获得输出如下：
+ </p>
+ <pre><code>&lt;h1&gt;Hello 小明&lt;/h1&gt;
+</code></pre>
+ <p>
+  咋一看，这和使用JavaScript模板字符串没啥区别嘛。不过，试试：
+ </p>
+ <pre><code>var s = env.render('hello.html', { name: '&lt;script&gt;alert("小明")&lt;/script&gt;' });
+console.log(s);
+</code></pre>
+ <p>
+  获得输出如下：
+ </p>
+ <pre><code>&lt;h1&gt;Hello &amp;lt;script&amp;gt;alert("小明")&amp;lt;/script&amp;gt;&lt;/h1&gt;
+</code></pre>
+ <p>
+  这样就避免了输出恶意脚本。
+ </p>
+ <p>
+  此外，可以使用Nunjucks提供的功能强大的tag，编写条件判断、循环等功能，例如：
+ </p>
+ <pre><code>&lt;!-- 循环输出名字 --&gt;
+&lt;body&gt;
+    &lt;h3&gt;Fruits List&lt;/h3&gt;
+    {% for f in fruits %}
+    &lt;p&gt;{{ f }}&lt;/p&gt;
+    {% endfor %}
+&lt;/body&gt;
+</code></pre>
+ <p>
+  Nunjucks模板引擎最强大的功能在于模板的继承。仔细观察各种网站可以发现，网站的结构实际上是类似的，头部、尾部都是固定格式，只有中间页面部分内容不同。如果每个模板都重复头尾，一旦要修改头部或尾部，那就需要改动所有模板。
+ </p>
+ <p>
+  更好的方式是使用继承。先定义一个基本的网页框架
+  <code>
+   base.html
+  </code>
+  ：
+ </p>
+ <pre><code>&lt;html&gt;&lt;body&gt;
+{% block header %} &lt;h3&gt;Unnamed&lt;/h3&gt; {% endblock %}
+{% block body %} &lt;div&gt;No body&lt;/div&gt; {% endblock %}
+{% block footer %} &lt;div&gt;copyright&lt;/div&gt; {% endblock %}
+&lt;/body&gt;
+</code></pre>
+ <p>
+  <code>
+   base.html
+  </code>
+  定义了三个可编辑的块，分别命名为
+  <code>
+   header
+  </code>
+  、
+  <code>
+   body
+  </code>
+  和
+  <code>
+   footer
+  </code>
+  。子模板可以有选择地对块进行重新定义：
+ </p>
+ <pre><code>{% extends 'base.html' %}
+
+{% block header %}&lt;h1&gt;{{ header }}&lt;/h1&gt;{% endblock %}
+
+{% block body %}&lt;p&gt;{{ body }}&lt;/p&gt;{% endblock %}
+</code></pre>
+ <p>
+  然后，我们对子模板进行渲染：
+ </p>
+ <pre><code>console.log(env.render('extend.html', {
+    header: 'Hello',
+    body: 'bla bla bla...'
+}));
+</code></pre>
+ <p>
+  输出HTML如下：
+ </p>
+ <pre><code>&lt;html&gt;&lt;body&gt;
+&lt;h1&gt;Hello&lt;/h1&gt;
+&lt;p&gt;bla bla bla...&lt;/p&gt;
+&lt;div&gt;copyright&lt;/div&gt; &lt;-- footer没有重定义，所以仍使用父模板的内容
+&lt;/body&gt;
+</code></pre>
+ <h3>
+  性能
+ </h3>
+ <p>
+  最后我们要考虑一下Nunjucks的性能。
+ </p>
+ <p>
+  对于模板渲染本身来说，速度是非常非常快的，因为就是拼字符串嘛，纯CPU操作。
+ </p>
+ <p>
+  性能问题主要出现在从文件读取模板内容这一步。这是一个IO操作，在Node.js环境中，我们知道，单线程的JavaScript最不能忍受的就是同步IO，但Nunjucks默认就使用同步IO读取模板文件。
+ </p>
+ <p>
+  好消息是Nunjucks会缓存已读取的文件内容，也就是说，模板文件最多读取一次，就会放在内存中，后面的请求是不会再次读取文件的，只要我们指定了
+  <code>
+   noCache: false
+  </code>
+  这个参数。
+ </p>
+ <p>
+  在开发环境下，可以关闭cache，这样每次重新加载模板，便于实时修改模板。在生产环境下，一定要打开cache，这样就不会有性能问题。
+ </p>
+ <p>
+  Nunjucks也提供了异步读取的方式，但是这样写起来很麻烦，有简单的写法我们就不会考虑复杂的写法。保持代码简单是可维护性的关键。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/koa/use-nunjucks">
+   use-nunjucks
+  </a>
+ </p>
+</div>
+</body></html>

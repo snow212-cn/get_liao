@@ -1,0 +1,170 @@
+<html><head><meta charset="utf-8"/><title>搭建Node开发环境</title></head><body><h1>搭建Node开发环境</h1><div class="x-wiki-content x-main-content">
+ <p>
+  使用文本编辑器来开发Node程序，最大的缺点是效率太低，运行Node程序还需要在命令行单独敲命令。如果还需要调试程序，就更加麻烦了。
+ </p>
+ <p>
+  所以我们需要一个IDE集成开发环境，让我们能在一个环境里编码、运行、调试，这样就可以大大提升开发效率。
+ </p>
+ <p>
+  Java的集成开发环境有Eclipse，Intellij idea等，C#的集成开发环境有Visual Studio，那么问题又来了：Node.js的集成开发环境到底哪家强？
+ </p>
+ <p>
+  考察Node.js的集成开发环境，重点放在启动速度快，执行简单，调试方便这三点上。当然，免费使用是一个加分项。
+ </p>
+ <p>
+  综合考察后，我们隆重向大家推荐Node.js集成开发环境：
+ </p>
+ <h1>
+  Visual Studio Code
+ </h1>
+ <p>
+  Visual Studio Code由微软出品，但它不是那个大块头的Visual Studio，它是一个精简版的迷你Visual Studio，并且，Visual Studio Code可以跨！平！台！Windows、Mac和Linux通用。
+ </p>
+ <h3>
+  安装Visual Studio Code
+ </h3>
+ <p>
+  可以从Visual Studio Code的
+  <a href="http://code.visualstudio.com/">
+   官方网站
+  </a>
+  下载并安装最新的版本。
+ </p>
+ <p>
+  安装过程中，请务必钩上以下选项：
+ </p>
+ <p>
+  <img alt="install-vsc" data-src="/files/attachments/1099506699467904/l" src="https://www.liaoxuefeng.com/files/attachments/1099506699467904/l"/>
+ </p>
+ <p>
+  <input checked="" disabled="" type="checkbox"/>
+  将“通过Code打开”操作添加到Windows资源管理器目录上下文菜单
+ </p>
+ <p>
+  这将大大提升将来的操作快捷度。
+ </p>
+ <p>
+  在Mac系统上，Finder选中一个目录，右键菜单并没有“通过Code打开”这个操作。不过我们可以通过Automator自己添加这个操作。
+ </p>
+ <p>
+  先运行Automator，选择“服务”：
+ </p>
+ <p>
+  <img alt="automator-service" data-src="/files/attachments/1116365341585728/l" src="https://www.liaoxuefeng.com/files/attachments/1116365341585728/l"/>
+ </p>
+ <p>
+  然后，执行以下操作：
+ </p>
+ <p>
+  <img alt="automator" data-src="/files/attachments/1116366660694240/l" src="https://www.liaoxuefeng.com/files/attachments/1116366660694240/l"/>
+ </p>
+ <ol>
+  <li>
+   在右侧面板选择“服务”收到选定的“文件夹”，位于“Finder.app“，该选项是为了从Finder中接收一个文件夹；
+  </li>
+  <li>
+   在左侧面板选择”实用工具“，然后找到”运行Shell脚本“，把它拽到右侧面板里；
+  </li>
+  <li>
+   在右侧”运行Shell脚本“的面板里，选择Shell”/bin/bash“，传递输入“作为自变量”，然后修改Shell脚本如下：
+  </li>
+ </ol>
+ <pre><code>for f in "$@"
+do
+    open -a "Visual Studio Code" "$f"
+done
+</code></pre>
+ <p>
+  保存为“Open With VSCode”后，打开Finder，选中一个文件夹，点击右键，“服务”，就可以看到“Open With VSCode”菜单：
+ </p>
+ <p>
+  <img alt="open-with-vscode" data-src="/files/attachments/1116366168753248/l" src="https://www.liaoxuefeng.com/files/attachments/1116366168753248/l"/>
+ </p>
+ <h3>
+  运行和调试JavaScript
+ </h3>
+ <p>
+  在VS Code中，我们可以非常方便地运行JavaScript文件。
+ </p>
+ <p>
+  VS Code以文件夹作为工程目录（Workspace Dir），所有的JavaScript文件都存放在该目录下。此外，VS Code在工程目录下还需要一个
+  <code>
+   .vscode
+  </code>
+  的配置目录，里面存放里VS Code需要的配置文件。
+ </p>
+ <p>
+  假设我们在
+  <code>
+   C:\Work\
+  </code>
+  目录下创建了一个
+  <code>
+   hello
+  </code>
+  目录作为工程目录，并编写了一个
+  <code>
+   hello.js
+  </code>
+  文件，则该工程目录的结构如下：
+ </p>
+ <pre><code>hello/ &lt;-- workspace dir
+|
++- hello.js &lt;-- JavaScript file
+|
++- .vscode/  &lt;-- VS Code config
+   |
+   +- launch.json &lt;-- VS Code config file for JavaScript
+</code></pre>
+ <p>
+  可以用VS Code快速创建
+  <code>
+   launch.json
+  </code>
+  ，然后修改如下：
+ </p>
+ <pre><code>{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run hello.js",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/hello.js",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "externalConsole": false,
+            "sourceMaps": false,
+            "outDir": null
+        }
+    ]
+}
+</code></pre>
+ <p>
+  有了配置文件，即可使用VS Code调试JavaScript。
+ </p>
+ <p>
+  视频演示：
+ </p>
+ <p>
+  
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/hello">
+   hello.js
+  </a>
+ </p>
+</div>
+</body></html>

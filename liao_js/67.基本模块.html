@@ -1,0 +1,143 @@
+<html><head><meta charset="utf-8"/><title>基本模块</title></head><body><h1>基本模块</h1><div class="x-wiki-content x-main-content">
+ <p>
+  因为Node.js是运行在服务区端的JavaScript环境，服务器程序和浏览器程序相比，最大的特点是没有浏览器的安全限制了，而且，服务器程序必须能接收网络请求，读写文件，处理二进制内容，所以，Node.js内置的常用模块就是为了实现基本的服务器功能。这些模块在浏览器环境中是无法被执行的，因为它们的底层代码是用C/C++在Node.js运行环境中实现的。
+ </p>
+ <h3>
+  global
+ </h3>
+ <p>
+  在前面的JavaScript课程中，我们已经知道，JavaScript有且仅有一个全局对象，在浏览器中，叫
+  <code>
+   window
+  </code>
+  对象。而在Node.js环境中，也有唯一的全局对象，但不叫
+  <code>
+   window
+  </code>
+  ，而叫
+  <code>
+   global
+  </code>
+  ，这个对象的属性和方法也和浏览器环境的
+  <code>
+   window
+  </code>
+  不同。进入Node.js交互环境，可以直接输入：
+ </p>
+ <pre><code>&gt; global.console
+Console {
+  log: [Function: bound ],
+  info: [Function: bound ],
+  warn: [Function: bound ],
+  error: [Function: bound ],
+  dir: [Function: bound ],
+  time: [Function: bound ],
+  timeEnd: [Function: bound ],
+  trace: [Function: bound trace],
+  assert: [Function: bound ],
+  Console: [Function: Console] }
+</code></pre>
+ <h3>
+  process
+ </h3>
+ <p>
+  <code>
+   process
+  </code>
+  也是Node.js提供的一个对象，它代表当前Node.js进程。通过
+  <code>
+   process
+  </code>
+  对象可以拿到许多有用信息：
+ </p>
+ <pre><code>&gt; process === global.process;
+true
+&gt; process.version;
+'v5.2.0'
+&gt; process.platform;
+'darwin'
+&gt; process.arch;
+'x64'
+&gt; process.cwd(); //返回当前工作目录
+'/Users/michael'
+&gt; process.chdir('/private/tmp'); // 切换当前工作目录
+undefined
+&gt; process.cwd();
+'/private/tmp'
+</code></pre>
+ <p>
+  JavaScript程序是由事件驱动执行的单线程模型，Node.js也不例外。Node.js不断执行响应事件的JavaScript函数，直到没有任何响应事件的函数可以执行时，Node.js就退出了。
+ </p>
+ <p>
+  如果我们想要在下一次事件响应中执行代码，可以调用
+  <code>
+   process.nextTick()
+  </code>
+  ：
+ </p>
+ <pre><code>// test.js
+
+// process.nextTick()将在下一轮事件循环中调用:
+process.nextTick(function () {
+    console.log('nextTick callback!');
+});
+console.log('nextTick was set!');
+</code></pre>
+ <p>
+  用Node执行上面的代码
+  <code>
+   node test.js
+  </code>
+  ，你会看到，打印输出是：
+ </p>
+ <pre><code>nextTick was set!
+nextTick callback!
+</code></pre>
+ <p>
+  这说明传入
+  <code>
+   process.nextTick()
+  </code>
+  的函数不是立刻执行，而是要等到下一次事件循环。
+ </p>
+ <p>
+  Node.js进程本身的事件就由
+  <code>
+   process
+  </code>
+  对象来处理。如果我们响应
+  <code>
+   exit
+  </code>
+  事件，就可以在程序即将退出时执行某个回调函数：
+ </p>
+ <pre><code>// 程序即将退出时的回调函数:
+process.on('exit', function (code) {
+    console.log('about to exit with code: ' + code);
+});
+</code></pre>
+ <h3>
+  判断JavaScript执行环境
+ </h3>
+ <p>
+  有很多JavaScript代码既能在浏览器中执行，也能在Node环境执行，但有些时候，程序本身需要判断自己到底是在什么环境下执行的，常用的方式就是根据浏览器和Node环境提供的全局变量名称来判断：
+ </p>
+ <pre><code>if (typeof(window) === 'undefined') {
+    console.log('node.js');
+} else {
+    console.log('browser');
+}
+</code></pre>
+ <p>
+  后面，我们将介绍Node.js的常用内置模块。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/blob/master/samples/node/global/gl.js">
+   gl.js
+  </a>
+ </p>
+</div>
+</body></html>

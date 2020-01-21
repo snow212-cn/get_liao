@@ -1,0 +1,473 @@
+<html><head><meta charset="utf-8"/><title>编写测试</title></head><body><h1>编写测试</h1><div class="x-wiki-content x-main-content">
+ <p>
+  假设我们编写了一个
+  <code>
+   hello.js
+  </code>
+  ，并且输出一个简单的求和函数：
+ </p>
+ <pre><code>// hello.js
+
+module.exports = function (...rest) {
+    var sum = 0;
+    for (let n of rest) {
+        sum += n;
+    }
+    return sum;
+};
+</code></pre>
+ <p>
+  这个函数非常简单，就是对输入的任意参数求和并返回结果。
+ </p>
+ <p>
+  如果我们想对这个函数进行测试，可以写一个
+  <code>
+   test.js
+  </code>
+  ，然后使用Node.js提供的
+  <code>
+   assert
+  </code>
+  模块进行断言：
+ </p>
+ <pre><code>// test.js
+
+const assert = require('assert');
+const sum = require('./hello');
+
+assert.strictEqual(sum(), 0);
+assert.strictEqual(sum(1), 1);
+assert.strictEqual(sum(1, 2), 3);
+assert.strictEqual(sum(1, 2, 3), 6);
+</code></pre>
+ <p>
+  <code>
+   assert
+  </code>
+  模块非常简单，它断言一个表达式为true。如果断言失败，就抛出Error。可以在Node.js文档中查看
+  <code>
+   assert
+  </code>
+  模块的
+  <a href="https://nodejs.org/dist/latest/docs/api/assert.html">
+   所有API
+  </a>
+  。
+ </p>
+ <p>
+  单独写一个
+  <code>
+   test.js
+  </code>
+  的缺点是没法自动运行测试，而且，如果第一个assert报错，后面的测试也执行不了了。
+ </p>
+ <p>
+  如果有很多测试需要运行，就必须把这些测试全部组织起来，然后统一执行，并且得到执行结果。这就是我们为什么要用mocha来编写并运行测试。
+ </p>
+ <h3>
+  mocha test
+ </h3>
+ <p>
+  我们创建
+  <code>
+   hello-test
+  </code>
+  工程来编写
+  <code>
+   hello.js
+  </code>
+  以及相关测试。工程结构如下：
+ </p>
+ <pre><code>hello-test/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- hello.js &lt;-- 待测试js文件
+|
++- test/ &lt;-- 存放所有test
+｜ ｜
+|  +- hello-test.js &lt;-- 测试文件
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  我们首先在
+  <code>
+   package.json
+  </code>
+  中添加mocha的依赖包。和其他依赖包不同，这次我们并没有把依赖包添加到
+  <code>
+   "dependencies"
+  </code>
+  中，而是
+  <code>
+   "devDependencies"
+  </code>
+  ：
+ </p>
+ <pre><code>{
+  ...
+
+  "dependencies": {},
+  "devDependencies": {
+    "mocha": "3.0.2"
+  }
+}
+</code></pre>
+ <p>
+  如果一个模块在运行的时候并不需要，仅仅在开发时才需要，就可以放到
+  <code>
+   devDependencies
+  </code>
+  中。这样，正式打包发布时，
+  <code>
+   devDependencies
+  </code>
+  的包不会被包含进来。
+ </p>
+ <p>
+  然后使用
+  <code>
+   npm install
+  </code>
+  安装。
+ </p>
+ <p>
+  <em>
+   注意
+  </em>
+  ，很多文章会让你用命令
+  <code>
+   npm install -g mocha
+  </code>
+  把mocha安装到全局module中。这是不需要的。尽量不要安装全局模块，因为全局模块会影响到所有Node.js的工程。
+ </p>
+ <p>
+  紧接着，我们在
+  <code>
+   test
+  </code>
+  目录下创建
+  <code>
+   hello-test.js
+  </code>
+  来编写测试。
+ </p>
+ <p>
+  mocha默认会执行
+  <code>
+   test
+  </code>
+  目录下的所有测试，不要去改变默认目录。
+ </p>
+ <p>
+  <code>
+   hello-test.js
+  </code>
+  内容如下：
+ </p>
+ <pre><code>const assert = require('assert');
+
+const sum = require('../hello');
+
+describe('#hello.js', () =&gt; {
+
+    describe('#sum()', () =&gt; {
+        it('sum() should return 0', () =&gt; {
+            assert.strictEqual(sum(), 0);
+        });
+
+        it('sum(1) should return 1', () =&gt; {
+            assert.strictEqual(sum(1), 1);
+        });
+
+        it('sum(1, 2) should return 3', () =&gt; {
+            assert.strictEqual(sum(1, 2), 3);
+        });
+
+        it('sum(1, 2, 3) should return 6', () =&gt; {
+            assert.strictEqual(sum(1, 2, 3), 6);
+        });
+    });
+});
+</code></pre>
+ <p>
+  这里我们使用mocha默认的BDD-style的测试。
+  <code>
+   describe
+  </code>
+  可以任意嵌套，以便把相关测试看成一组测试。
+ </p>
+ <p>
+  每个
+  <code>
+   it("name", function() {...})
+  </code>
+  就代表一个测试。例如，为了测试
+  <code>
+   sum(1, 2)
+  </code>
+  ，我们这样写：
+ </p>
+ <pre><code>it('sum(1, 2) should return 3', () =&gt; {
+    assert.strictEqual(sum(1, 2), 3);
+});
+</code></pre>
+ <p>
+  编写测试的原则是，一次只测一种情况，且测试代码要非常简单。我们编写多个测试来分别测试不同的输入，并使用
+  <code>
+   assert
+  </code>
+  判断输出是否是我们所期望的。
+ </p>
+ <h3>
+  运行测试
+ </h3>
+ <p>
+  下一步，我们就可以用mocha运行测试了。
+ </p>
+ <p>
+  如何运行？有三种方法。
+ </p>
+ <p>
+  方法一，可以打开命令提示符，切换到
+  <code>
+   hello-test
+  </code>
+  目录，然后执行命令：
+ </p>
+ <pre><code>C:\...\hello-test&gt; node_modules\mocha\bin\mocha
+</code></pre>
+ <p>
+  mocha就会自动执行所有测试，然后输出如下：
+ </p>
+ <pre><code>  #hello.js
+    #sum()
+      ✓ sum() should return 0
+      ✓ sum(1) should return 1
+      ✓ sum(1, 2) should return 3
+      ✓ sum(1, 2, 3) should return 6
+  4 passing (7ms)
+</code></pre>
+ <p>
+  这说明我们编写的4个测试全部通过。如果没有通过，要么修改测试代码，要么修改
+  <code>
+   hello.js
+  </code>
+  ，直到测试全部通过为止。
+ </p>
+ <p>
+  方法二，我们在
+  <code>
+   package.json
+  </code>
+  中添加npm命令：
+ </p>
+ <pre><code>{
+  ...
+
+  "scripts": {
+    "test": "mocha"
+  },
+
+  ...
+}
+</code></pre>
+ <p>
+  然后在
+  <code>
+   hello-test
+  </code>
+  目录下执行命令：
+ </p>
+ <pre><code>C:\...\hello-test&gt; npm test
+</code></pre>
+ <p>
+  可以得到和上面一样的输出。这种方式通过npm执行命令，输入的命令比较简单。
+ </p>
+ <p>
+  方法三，我们在VS Code中创建配置文件
+  <code>
+   .vscode/launch.json
+  </code>
+  ，然后编写两个配置选项：
+ </p>
+ <pre><code>{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Run",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/hello.js",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "development"
+            },
+            "externalConsole": false,
+            "sourceMaps": false,
+            "outDir": null
+        },
+        {
+            "name": "Test",
+            "type": "node",
+            "request": "launch",
+            "program": "${workspaceRoot}/node_modules/mocha/bin/mocha",
+            "stopOnEntry": false,
+            "args": [],
+            "cwd": "${workspaceRoot}",
+            "preLaunchTask": null,
+            "runtimeExecutable": null,
+            "runtimeArgs": [
+                "--nolazy"
+            ],
+            "env": {
+                "NODE_ENV": "test"
+            },
+            "externalConsole": false,
+            "sourceMaps": false,
+            "outDir": null
+        }
+    ]
+}
+</code></pre>
+ <p>
+  注意第一个配置选项
+  <code>
+   Run
+  </code>
+  是正常执行一个.js文件，第二个配置选项
+  <code>
+   Test
+  </code>
+  我们填入
+  <code>
+   "program": "${workspaceRoot}/node_modules/mocha/bin/mocha"
+  </code>
+  ，并设置
+  <code>
+   env
+  </code>
+  为
+  <code>
+   "NODE_ENV": "test"
+  </code>
+  ，这样，就可以在VS Code中打开Debug面板，选择
+  <code>
+   Test
+  </code>
+  ，运行，即可在Console面板中看到测试结果：
+ </p>
+ <p>
+  <img alt="run-hello-test" data-src="/files/attachments/1101762746384128/l" src="https://www.liaoxuefeng.com/files/attachments/1101762746384128/l"/>
+ </p>
+ <h3>
+  before和after
+ </h3>
+ <p>
+  在测试前初始化资源，测试后释放资源是非常常见的。mocha提供了before、after、beforeEach和afterEach来实现这些功能。
+ </p>
+ <p>
+  我们把
+  <code>
+   hello-test.js
+  </code>
+  改为：
+ </p>
+ <pre><code>const assert = require('assert');
+const sum = require('../hello');
+
+describe('#hello.js', () =&gt; {
+    describe('#sum()', () =&gt; {
+        before(function () {
+            console.log('before:');
+        });
+
+        after(function () {
+            console.log('after.');
+        });
+
+        beforeEach(function () {
+            console.log('  beforeEach:');
+        });
+
+        afterEach(function () {
+            console.log('  afterEach.');
+        });
+
+        it('sum() should return 0', () =&gt; {
+            assert.strictEqual(sum(), 0);
+        });
+
+        it('sum(1) should return 1', () =&gt; {
+            assert.strictEqual(sum(1), 1);
+        });
+
+        it('sum(1, 2) should return 3', () =&gt; {
+            assert.strictEqual(sum(1, 2), 3);
+        });
+
+        it('sum(1, 2, 3) should return 6', () =&gt; {
+            assert.strictEqual(sum(1, 2, 3), 6);
+        });
+    });
+});
+</code></pre>
+ <p>
+  再次运行，可以看到每个test执行前后会分别执行
+  <code>
+   beforeEach()
+  </code>
+  和
+  <code>
+   afterEach()
+  </code>
+  ，以及一组test执行前后会分别执行
+  <code>
+   before()
+  </code>
+  和
+  <code>
+   after()
+  </code>
+  ：
+ </p>
+ <pre><code>  #hello.js
+    #sum()
+before:
+  beforeEach:
+      ✓ sum() should return 0
+  afterEach.
+  beforeEach:
+      ✓ sum(1) should return 1
+  afterEach.
+  beforeEach:
+      ✓ sum(1, 2) should return 3
+  afterEach.
+  beforeEach:
+      ✓ sum(1, 2, 3) should return 6
+  afterEach.
+after.
+  4 passing (8ms)
+</code></pre>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/test/hello-test">
+   hello-test
+  </a>
+ </p>
+</div>
+</body></html>

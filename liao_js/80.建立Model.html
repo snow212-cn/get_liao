@@ -1,0 +1,558 @@
+<html><head><meta charset="utf-8"/><title>建立Model</title></head><body><h1>建立Model</h1><div class="x-wiki-content x-main-content">
+ <p>
+  直接使用Sequelize虽然可以，但是存在一些问题。
+ </p>
+ <p>
+  团队开发时，有人喜欢自己加timestamp：
+ </p>
+ <pre><code>var Pet = sequelize.define('pet', {
+    id: {
+        type: Sequelize.STRING(50),
+        primaryKey: true
+    },
+    name: Sequelize.STRING(100),
+    createdAt: Sequelize.BIGINT,
+    updatedAt: Sequelize.BIGINT
+}, {
+        timestamps: false
+    });
+</code></pre>
+ <p>
+  有人又喜欢自增主键，并且自定义表名：
+ </p>
+ <pre><code>var Pet = sequelize.define('pet', {
+    id: {
+        type: Sequelize.INTEGER,
+        autoIncrement: true,
+        primaryKey: true
+    },
+    name: Sequelize.STRING(100)
+}, {
+        tableName: 't_pet'
+    });
+</code></pre>
+ <p>
+  一个大型Web App通常都有几十个映射表，一个映射表就是一个Model。如果按照各自喜好，那业务代码就不好写。Model不统一，很多代码也无法复用。
+ </p>
+ <p>
+  所以我们需要一个统一的模型，强迫所有Model都遵守同一个规范，这样不但实现简单，而且容易统一风格。
+ </p>
+ <h3>
+  Model
+ </h3>
+ <p>
+  我们首先要定义的就是Model存放的文件夹必须在
+  <code>
+   models
+  </code>
+  内，并且以Model名字命名，例如：
+  <code>
+   Pet.js
+  </code>
+  ，
+  <code>
+   User.js
+  </code>
+  等等。
+ </p>
+ <p>
+  其次，每个Model必须遵守一套规范：
+ </p>
+ <ol>
+  <li>
+   统一主键，名称必须是
+   <code>
+    id
+   </code>
+   ，类型必须是
+   <code>
+    STRING(50)
+   </code>
+   ；
+  </li>
+  <li>
+   主键可以自己指定，也可以由框架自动生成（如果为null或undefined）；
+  </li>
+  <li>
+   所有字段默认为
+   <code>
+    NOT NULL
+   </code>
+   ，除非显式指定；
+  </li>
+  <li>
+   统一timestamp机制，每个Model必须有
+   <code>
+    createdAt
+   </code>
+   、
+   <code>
+    updatedAt
+   </code>
+   和
+   <code>
+    version
+   </code>
+   ，分别记录创建时间、修改时间和版本号。其中，
+   <code>
+    createdAt
+   </code>
+   和
+   <code>
+    updatedAt
+   </code>
+   以
+   <code>
+    BIGINT
+   </code>
+   存储时间戳，最大的好处是无需处理时区，排序方便。
+   <code>
+    version
+   </code>
+   每次修改时自增。
+  </li>
+ </ol>
+ <p>
+  所以，我们不要直接使用Sequelize的API，而是通过
+  <code>
+   db.js
+  </code>
+  间接地定义Model。例如，
+  <code>
+   User.js
+  </code>
+  应该定义如下：
+ </p>
+ <pre><code>const db = require('../db');
+
+module.exports = db.defineModel('users', {
+    email: {
+        type: db.STRING(100),
+        unique: true
+    },
+    passwd: db.STRING(100),
+    name: db.STRING(100),
+    gender: db.BOOLEAN
+});
+</code></pre>
+ <p>
+  这样，User就具有
+  <code>
+   email
+  </code>
+  、
+  <code>
+   passwd
+  </code>
+  、
+  <code>
+   name
+  </code>
+  和
+  <code>
+   gender
+  </code>
+  这4个业务字段。
+  <code>
+   id
+  </code>
+  、
+  <code>
+   createdAt
+  </code>
+  、
+  <code>
+   updatedAt
+  </code>
+  和
+  <code>
+   version
+  </code>
+  应该自动加上，而不是每个Model都去重复定义。
+ </p>
+ <p>
+  所以，
+  <code>
+   db.js
+  </code>
+  的作用就是统一Model的定义：
+ </p>
+ <pre><code>const Sequelize = require('sequelize');
+
+console.log('init sequelize...');
+
+var sequelize = new Sequelize('dbname', 'username', 'password', {
+    host: 'localhost',
+    dialect: 'mysql',
+    pool: {
+        max: 5,
+        min: 0,
+        idle: 10000
+    }
+});
+
+const ID_TYPE = Sequelize.STRING(50);
+
+function defineModel(name, attributes) {
+    var attrs = {};
+    for (let key in attributes) {
+        let value = attributes[key];
+        if (typeof value === 'object' &amp;&amp; value['type']) {
+            value.allowNull = value.allowNull || false;
+            attrs[key] = value;
+        } else {
+            attrs[key] = {
+                type: value,
+                allowNull: false
+            };
+        }
+    }
+    attrs.id = {
+        type: ID_TYPE,
+        primaryKey: true
+    };
+    attrs.createdAt = {
+        type: Sequelize.BIGINT,
+        allowNull: false
+    };
+    attrs.updatedAt = {
+        type: Sequelize.BIGINT,
+        allowNull: false
+    };
+    attrs.version = {
+        type: Sequelize.BIGINT,
+        allowNull: false
+    };
+    return sequelize.define(name, attrs, {
+        tableName: name,
+        timestamps: false,
+        hooks: {
+            beforeValidate: function (obj) {
+                let now = Date.now();
+                if (obj.isNewRecord) {
+                    if (!obj.id) {
+                        obj.id = generateId();
+                    }
+                    obj.createdAt = now;
+                    obj.updatedAt = now;
+                    obj.version = 0;
+                } else {
+                    obj.updatedAt = Date.now();
+                    obj.version++;
+                }
+            }
+        }
+    });
+}
+</code></pre>
+ <p>
+  我们定义的
+  <code>
+   defineModel
+  </code>
+  就是为了强制实现上述规则。
+ </p>
+ <p>
+  Sequelize在创建、修改Entity时会调用我们指定的函数，这些函数通过
+  <code>
+   hooks
+  </code>
+  在定义Model时设定。我们在
+  <code>
+   beforeValidate
+  </code>
+  这个事件中根据是否是
+  <code>
+   isNewRecord
+  </code>
+  设置主键（如果主键为
+  <code>
+   null
+  </code>
+  或
+  <code>
+   undefined
+  </code>
+  ）、设置时间戳和版本号。
+ </p>
+ <p>
+  这么一来，Model定义的时候就可以大大简化。
+ </p>
+ <h3>
+  数据库配置
+ </h3>
+ <p>
+  接下来，我们把简单的
+  <code>
+   config.js
+  </code>
+  拆成3个配置文件：
+ </p>
+ <ul>
+  <li>
+   config-default.js：存储默认的配置；
+  </li>
+  <li>
+   config-override.js：存储特定的配置；
+  </li>
+  <li>
+   config-test.js：存储用于测试的配置。
+  </li>
+ </ul>
+ <p>
+  例如，默认的
+  <code>
+   config-default.js
+  </code>
+  可以配置如下：
+ </p>
+ <pre><code>var config = {
+    dialect: 'mysql',
+    database: 'nodejs',
+    username: 'www',
+    password: 'www',
+    host: 'localhost',
+    port: 3306
+};
+
+module.exports = config;
+</code></pre>
+ <p>
+  而
+  <code>
+   config-override.js
+  </code>
+  可应用实际配置：
+ </p>
+ <pre><code>var config = {
+    database: 'production',
+    username: 'www',
+    password: 'secret-password',
+    host: '192.168.1.199'
+};
+
+module.exports = config;
+</code></pre>
+ <p>
+  <code>
+   config-test.js
+  </code>
+  可应用测试环境的配置：
+ </p>
+ <pre><code>var config = {
+    database: 'test'
+};
+
+module.exports = config;
+</code></pre>
+ <p>
+  读取配置的时候，我们用
+  <code>
+   config.js
+  </code>
+  实现不同环境读取不同的配置文件：
+ </p>
+ <pre><code>const defaultConfig = './config-default.js';
+// 可设定为绝对路径，如 /opt/product/config-override.js
+const overrideConfig = './config-override.js';
+const testConfig = './config-test.js';
+
+const fs = require('fs');
+
+var config = null;
+
+if (process.env.NODE_ENV === 'test') {
+    console.log(`Load ${testConfig}...`);
+    config = require(testConfig);
+} else {
+    console.log(`Load ${defaultConfig}...`);
+    config = require(defaultConfig);
+    try {
+        if (fs.statSync(overrideConfig).isFile()) {
+            console.log(`Load ${overrideConfig}...`);
+            config = Object.assign(config, require(overrideConfig));
+        }
+    } catch (err) {
+        console.log(`Cannot load ${overrideConfig}.`);
+    }
+}
+
+module.exports = config;
+</code></pre>
+ <p>
+  具体的规则是：
+ </p>
+ <ol>
+  <li>
+   先读取
+   <code>
+    config-default.js
+   </code>
+   ；
+  </li>
+  <li>
+   如果不是测试环境，就读取
+   <code>
+    config-override.js
+   </code>
+   ，如果文件不存在，就忽略。
+  </li>
+  <li>
+   如果是测试环境，就读取
+   <code>
+    config-test.js
+   </code>
+   。
+  </li>
+ </ol>
+ <p>
+  这样做的好处是，开发环境下，团队统一使用默认的配置，并且无需
+  <code>
+   config-override.js
+  </code>
+  。部署到服务器时，由运维团队配置好
+  <code>
+   config-override.js
+  </code>
+  ，以覆盖
+  <code>
+   config-override.js
+  </code>
+  的默认设置。测试环境下，本地和CI服务器统一使用
+  <code>
+   config-test.js
+  </code>
+  ，测试数据库可以反复清空，不会影响开发。
+ </p>
+ <p>
+  配置文件表面上写起来很容易，但是，既要保证开发效率，又要避免服务器配置文件泄漏，还要能方便地执行测试，就需要一开始搭建出好的结构，才能提升工程能力。
+ </p>
+ <h3>
+  使用Model
+ </h3>
+ <p>
+  要使用Model，就需要引入对应的Model文件，例如：
+  <code>
+   User.js
+  </code>
+  。一旦Model多了起来，如何引用也是一件麻烦事。
+ </p>
+ <p>
+  自动化永远比手工做效率高，而且更可靠。我们写一个
+  <code>
+   model.js
+  </code>
+  ，自动扫描并导入所有Model：
+ </p>
+ <pre><code>const fs = require('fs');
+const db = require('./db');
+
+let files = fs.readdirSync(__dirname + '/models');
+
+let js_files = files.filter((f)=&gt;{
+    return f.endsWith('.js');
+}, files);
+
+module.exports = {};
+
+for (let f of js_files) {
+    console.log(`import model from file ${f}...`);
+    let name = f.substring(0, f.length - 3);
+    module.exports[name] = require(__dirname + '/models/' + f);
+}
+
+module.exports.sync = () =&gt; {
+    db.sync();
+};
+</code></pre>
+ <p>
+  这样，需要用的时候，写起来就像这样：
+ </p>
+ <pre><code>const model = require('./model');
+
+let
+    Pet = model.Pet,
+    User = model.User;
+
+var pet = await Pet.create({ ... });
+</code></pre>
+ <h3>
+  工程结构
+ </h3>
+ <p>
+  最终，我们创建的工程
+  <code>
+   model-sequelize
+  </code>
+  结构如下：
+ </p>
+ <pre><code>model-sequelize/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- models/ &lt;-- 存放所有Model
+|  |
+|  +- Pet.js &lt;-- Pet
+|  |
+|  +- User.js &lt;-- User
+|
++- config.js &lt;-- 配置文件入口
+|
++- config-default.js &lt;-- 默认配置文件
+|
++- config-test.js &lt;-- 测试配置文件
+|
++- db.js &lt;-- 如何定义Model
+|
++- model.js &lt;-- 如何导入Model
+|
++- init-db.js &lt;-- 初始化数据库
+|
++- app.js &lt;-- 业务代码
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  注意到我们其实不需要创建表的SQL，因为Sequelize提供了一个
+  <code>
+   sync()
+  </code>
+  方法，可以自动创建数据库。这个功能在开发和生产环境中没有什么用，但是在测试环境中非常有用。测试时，我们可以用
+  <code>
+   sync()
+  </code>
+  方法自动创建出表结构，而不是自己维护SQL脚本。这样，可以随时修改Model的定义，并立刻运行测试。开发环境下，首次使用
+  <code>
+   sync()
+  </code>
+  也可以自动创建出表结构，避免了手动运行SQL的问题。
+ </p>
+ <p>
+  <code>
+   init-db.js
+  </code>
+  的代码非常简单：
+ </p>
+ <pre><code>const model = require('./model.js');
+model.sync();
+
+console.log('init db ok.');
+process.exit(0);
+</code></pre>
+ <p>
+  它最大的好处是避免了手动维护一个SQL脚本。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/db/model-sequelize">
+   model-sequelize
+  </a>
+ </p>
+</div>
+</body></html>

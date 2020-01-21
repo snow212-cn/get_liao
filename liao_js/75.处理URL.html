@@ -1,0 +1,598 @@
+<html><head><meta charset="utf-8"/><title>处理URL</title></head><body><h1>处理URL</h1><div class="x-wiki-content x-main-content">
+ <p>
+  在hello-koa工程中，我们处理http请求一律返回相同的HTML，这样虽然非常简单，但是用浏览器一测，随便输入任何URL都会返回相同的网页。
+ </p>
+ <p>
+  <img alt="buduijin" data-src="/files/attachments/1099851451809856/l" src="https://www.liaoxuefeng.com/files/attachments/1099851451809856/l"/>
+ </p>
+ <p>
+  正常情况下，我们应该对不同的URL调用不同的处理函数，这样才能返回不同的结果。例如像这样写：
+ </p>
+ <pre><code>app.use(async (ctx, next) =&gt; {
+    if (ctx.request.path === '/') {
+        ctx.response.body = 'index page';
+    } else {
+        await next();
+    }
+});
+
+app.use(async (ctx, next) =&gt; {
+    if (ctx.request.path === '/test') {
+        ctx.response.body = 'TEST page';
+    } else {
+        await next();
+    }
+});
+
+app.use(async (ctx, next) =&gt; {
+    if (ctx.request.path === '/error') {
+        ctx.response.body = 'ERROR page';
+    } else {
+        await next();
+    }
+});
+</code></pre>
+ <p>
+  这么写是可以运行的，但是好像有点蠢。
+ </p>
+ <p>
+  应该有一个能集中处理URL的middleware，它根据不同的URL调用不同的处理函数，这样，我们才能专心为每个URL编写处理函数。
+ </p>
+ <h3>
+  koa-router
+ </h3>
+ <p>
+  为了处理URL，我们需要引入
+  <code>
+   koa-router
+  </code>
+  这个middleware，让它负责处理URL映射。
+ </p>
+ <p>
+  我们把上一节的
+  <code>
+   hello-koa
+  </code>
+  工程复制一份，重命名为
+  <code>
+   url-koa
+  </code>
+  。
+ </p>
+ <p>
+  先在
+  <code>
+   package.json
+  </code>
+  中添加依赖项：
+ </p>
+ <pre><code>"koa-router": "7.0.0"
+</code></pre>
+ <p>
+  然后用
+  <code>
+   npm install
+  </code>
+  安装。
+ </p>
+ <p>
+  接下来，我们修改
+  <code>
+   app.js
+  </code>
+  ，使用
+  <code>
+   koa-router
+  </code>
+  来处理URL：
+ </p>
+ <pre><code>const Koa = require('koa');
+
+// 注意require('koa-router')返回的是函数:
+const router = require('koa-router')();
+
+const app = new Koa();
+
+// log request URL:
+app.use(async (ctx, next) =&gt; {
+    console.log(`Process ${ctx.request.method} ${ctx.request.url}...`);
+    await next();
+});
+
+// add url-route:
+router.get('/hello/:name', async (ctx, next) =&gt; {
+    var name = ctx.params.name;
+    ctx.response.body = `&lt;h1&gt;Hello, ${name}!&lt;/h1&gt;`;
+});
+
+router.get('/', async (ctx, next) =&gt; {
+    ctx.response.body = '&lt;h1&gt;Index&lt;/h1&gt;';
+});
+
+// add router middleware:
+app.use(router.routes());
+
+app.listen(3000);
+console.log('app started at port 3000...');
+</code></pre>
+ <p>
+  注意导入
+  <code>
+   koa-router
+  </code>
+  的语句最后的
+  <code>
+   ()
+  </code>
+  是函数调用：
+ </p>
+ <pre><code>const router = require('koa-router')();
+</code></pre>
+ <p>
+  相当于：
+ </p>
+ <pre><code>const fn_router = require('koa-router');
+const router = fn_router();
+</code></pre>
+ <p>
+  然后，我们使用
+  <code>
+   router.get('/path', async fn)
+  </code>
+  来注册一个GET请求。可以在请求路径中使用带变量的
+  <code>
+   /hello/:name
+  </code>
+  ，变量可以通过
+  <code>
+   ctx.params.name
+  </code>
+  访问。
+ </p>
+ <p>
+  再运行
+  <code>
+   app.js
+  </code>
+  ，我们就可以测试不同的URL：
+ </p>
+ <p>
+  输入首页：http://localhost:3000/
+ </p>
+ <p>
+  <img alt="url-index" data-src="/files/attachments/1099853782317472/l" src="https://www.liaoxuefeng.com/files/attachments/1099853782317472/l"/>
+ </p>
+ <p>
+  输入：http://localhost:3000/hello/koa
+ </p>
+ <p>
+  <img alt="url-hello" data-src="/files/attachments/1099853801191008/l" src="https://www.liaoxuefeng.com/files/attachments/1099853801191008/l"/>
+ </p>
+ <h3>
+  处理post请求
+ </h3>
+ <p>
+  用
+  <code>
+   router.get('/path', async fn)
+  </code>
+  处理的是get请求。如果要处理post请求，可以用
+  <code>
+   router.post('/path', async fn)
+  </code>
+  。
+ </p>
+ <p>
+  用post请求处理URL时，我们会遇到一个问题：post请求通常会发送一个表单，或者JSON，它作为request的body发送，但无论是Node.js提供的原始request对象，还是koa提供的request对象，都
+  <em>
+   不提供
+  </em>
+  解析request的body的功能！
+ </p>
+ <p>
+  所以，我们又需要引入另一个middleware来解析原始request请求，然后，把解析后的参数，绑定到
+  <code>
+   ctx.request.body
+  </code>
+  中。
+ </p>
+ <p>
+  <code>
+   koa-bodyparser
+  </code>
+  就是用来干这个活的。
+ </p>
+ <p>
+  我们在
+  <code>
+   package.json
+  </code>
+  中添加依赖项：
+ </p>
+ <pre><code>"koa-bodyparser": "3.2.0"
+</code></pre>
+ <p>
+  然后使用
+  <code>
+   npm install
+  </code>
+  安装。
+ </p>
+ <p>
+  下面，修改
+  <code>
+   app.js
+  </code>
+  ，引入
+  <code>
+   koa-bodyparser
+  </code>
+  ：
+ </p>
+ <pre><code>const bodyParser = require('koa-bodyparser');
+</code></pre>
+ <p>
+  在合适的位置加上：
+ </p>
+ <pre><code>app.use(bodyParser());
+</code></pre>
+ <p>
+  由于middleware的顺序很重要，这个
+  <code>
+   koa-bodyparser
+  </code>
+  必须在
+  <code>
+   router
+  </code>
+  之前被注册到
+  <code>
+   app
+  </code>
+  对象上。
+ </p>
+ <p>
+  现在我们就可以处理post请求了。写一个简单的登录表单：
+ </p>
+ <pre><code>router.get('/', async (ctx, next) =&gt; {
+    ctx.response.body = `&lt;h1&gt;Index&lt;/h1&gt;
+        &lt;form action="/signin" method="post"&gt;
+            &lt;p&gt;Name: &lt;input name="name" value="koa"&gt;&lt;/p&gt;
+            &lt;p&gt;Password: &lt;input name="password" type="password"&gt;&lt;/p&gt;
+            &lt;p&gt;&lt;input type="submit" value="Submit"&gt;&lt;/p&gt;
+        &lt;/form&gt;`;
+});
+
+router.post('/signin', async (ctx, next) =&gt; {
+    var
+        name = ctx.request.body.name || '',
+        password = ctx.request.body.password || '';
+    console.log(`signin with name: ${name}, password: ${password}`);
+    if (name === 'koa' &amp;&amp; password === '12345') {
+        ctx.response.body = `&lt;h1&gt;Welcome, ${name}!&lt;/h1&gt;`;
+    } else {
+        ctx.response.body = `&lt;h1&gt;Login failed!&lt;/h1&gt;
+        &lt;p&gt;&lt;a href="/"&gt;Try again&lt;/a&gt;&lt;/p&gt;`;
+    }
+});
+</code></pre>
+ <p>
+  注意到我们用
+  <code>
+   var name = ctx.request.body.name || ''
+  </code>
+  拿到表单的
+  <code>
+   name
+  </code>
+  字段，如果该字段不存在，默认值设置为
+  <code>
+   ''
+  </code>
+  。
+ </p>
+ <p>
+  类似的，put、delete、head请求也可以由router处理。
+ </p>
+ <h3>
+  重构
+ </h3>
+ <p>
+  现在，我们已经可以处理不同的URL了，但是看看
+  <code>
+   app.js
+  </code>
+  ，总觉得还是有点不对劲。
+ </p>
+ <p>
+  <img alt="still-buduijin" data-src="/files/attachments/1099855426483264/l" src="https://www.liaoxuefeng.com/files/attachments/1099855426483264/l"/>
+ </p>
+ <p>
+  所有的URL处理函数都放到
+  <code>
+   app.js
+  </code>
+  里显得很乱，而且，每加一个URL，就需要修改
+  <code>
+   app.js
+  </code>
+  。随着URL越来越多，
+  <code>
+   app.js
+  </code>
+  就会越来越长。
+ </p>
+ <p>
+  如果能把URL处理函数集中到某个js文件，或者某几个js文件中就好了，然后让
+  <code>
+   app.js
+  </code>
+  自动导入所有处理URL的函数。这样，代码一分离，逻辑就显得清楚了。最好是这样：
+ </p>
+ <pre><code>url2-koa/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- controllers/
+|  |
+|  +- login.js &lt;-- 处理login相关URL
+|  |
+|  +- users.js &lt;-- 处理用户管理相关URL
+|
++- app.js &lt;-- 使用koa的js
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  于是我们把
+  <code>
+   url-koa
+  </code>
+  复制一份，重命名为
+  <code>
+   url2-koa
+  </code>
+  ，准备重构这个项目。
+ </p>
+ <p>
+  我们先在
+  <code>
+   controllers
+  </code>
+  目录下编写
+  <code>
+   index.js
+  </code>
+  ：
+ </p>
+ <pre><code>var fn_index = async (ctx, next) =&gt; {
+    ctx.response.body = `&lt;h1&gt;Index&lt;/h1&gt;
+        &lt;form action="/signin" method="post"&gt;
+            &lt;p&gt;Name: &lt;input name="name" value="koa"&gt;&lt;/p&gt;
+            &lt;p&gt;Password: &lt;input name="password" type="password"&gt;&lt;/p&gt;
+            &lt;p&gt;&lt;input type="submit" value="Submit"&gt;&lt;/p&gt;
+        &lt;/form&gt;`;
+};
+
+var fn_signin = async (ctx, next) =&gt; {
+    var
+        name = ctx.request.body.name || '',
+        password = ctx.request.body.password || '';
+    console.log(`signin with name: ${name}, password: ${password}`);
+    if (name === 'koa' &amp;&amp; password === '12345') {
+        ctx.response.body = `&lt;h1&gt;Welcome, ${name}!&lt;/h1&gt;`;
+    } else {
+        ctx.response.body = `&lt;h1&gt;Login failed!&lt;/h1&gt;
+        &lt;p&gt;&lt;a href="/"&gt;Try again&lt;/a&gt;&lt;/p&gt;`;
+    }
+};
+
+module.exports = {
+    'GET /': fn_index,
+    'POST /signin': fn_signin
+};
+</code></pre>
+ <p>
+  这个
+  <code>
+   index.js
+  </code>
+  通过
+  <code>
+   module.exports
+  </code>
+  把两个URL处理函数暴露出来。
+ </p>
+ <p>
+  类似的，
+  <code>
+   hello.js
+  </code>
+  把一个URL处理函数暴露出来：
+ </p>
+ <pre><code>var fn_hello = async (ctx, next) =&gt; {
+    var name = ctx.params.name;
+    ctx.response.body = `&lt;h1&gt;Hello, ${name}!&lt;/h1&gt;`;
+};
+
+module.exports = {
+    'GET /hello/:name': fn_hello
+};
+</code></pre>
+ <p>
+  现在，我们修改
+  <code>
+   app.js
+  </code>
+  ，让它自动扫描
+  <code>
+   controllers
+  </code>
+  目录，找到所有
+  <code>
+   js
+  </code>
+  文件，导入，然后注册每个URL：
+ </p>
+ <pre><code>// 先导入fs模块，然后用readdirSync列出文件
+// 这里可以用sync是因为启动时只运行一次，不存在性能问题:
+var files = fs.readdirSync(__dirname + '/controllers');
+
+// 过滤出.js文件:
+var js_files = files.filter((f)=&gt;{
+    return f.endsWith('.js');
+});
+
+// 处理每个js文件:
+for (var f of js_files) {
+    console.log(`process controller: ${f}...`);
+    // 导入js文件:
+    let mapping = require(__dirname + '/controllers/' + f);
+    for (var url in mapping) {
+        if (url.startsWith('GET ')) {
+            // 如果url类似"GET xxx":
+            var path = url.substring(4);
+            router.get(path, mapping[url]);
+            console.log(`register URL mapping: GET ${path}`);
+        } else if (url.startsWith('POST ')) {
+            // 如果url类似"POST xxx":
+            var path = url.substring(5);
+            router.post(path, mapping[url]);
+            console.log(`register URL mapping: POST ${path}`);
+        } else {
+            // 无效的URL:
+            console.log(`invalid URL: ${url}`);
+        }
+    }
+}
+</code></pre>
+ <p>
+  如果上面的大段代码看起来还是有点费劲，那就把它拆成更小单元的函数：
+ </p>
+ <pre><code>function addMapping(router, mapping) {
+    for (var url in mapping) {
+        if (url.startsWith('GET ')) {
+            var path = url.substring(4);
+            router.get(path, mapping[url]);
+            console.log(`register URL mapping: GET ${path}`);
+        } else if (url.startsWith('POST ')) {
+            var path = url.substring(5);
+            router.post(path, mapping[url]);
+            console.log(`register URL mapping: POST ${path}`);
+        } else {
+            console.log(`invalid URL: ${url}`);
+        }
+    }
+}
+
+function addControllers(router) {
+    var files = fs.readdirSync(__dirname + '/controllers');
+    var js_files = files.filter((f) =&gt; {
+        return f.endsWith('.js');
+    });
+
+    for (var f of js_files) {
+        console.log(`process controller: ${f}...`);
+        let mapping = require(__dirname + '/controllers/' + f);
+        addMapping(router, mapping);
+    }
+}
+
+addControllers(router);
+</code></pre>
+ <p>
+  确保每个函数功能非常简单，一眼能看明白，是代码可维护的关键。
+ </p>
+ <h3>
+  Controller Middleware
+ </h3>
+ <p>
+  最后，我们把扫描
+  <code>
+   controllers
+  </code>
+  目录和创建
+  <code>
+   router
+  </code>
+  的代码从
+  <code>
+   app.js
+  </code>
+  中提取出来，作为一个简单的middleware使用，命名为
+  <code>
+   controller.js
+  </code>
+  ：
+ </p>
+ <pre><code>const fs = require('fs');
+
+function addMapping(router, mapping) {
+    ...
+}
+
+function addControllers(router, dir) {
+    ...
+}
+
+module.exports = function (dir) {
+    let
+        controllers_dir = dir || 'controllers', // 如果不传参数，扫描目录默认为'controllers'
+        router = require('koa-router')();
+    addControllers(router, controllers_dir);
+    return router.routes();
+};
+</code></pre>
+ <p>
+  这样一来，我们在
+  <code>
+   app.js
+  </code>
+  的代码又简化了：
+ </p>
+ <pre><code>...
+
+// 导入controller middleware:
+const controller = require('./controller');
+
+...
+
+// 使用middleware:
+app.use(controller());
+
+...
+</code></pre>
+ <p>
+  经过重新整理后的工程
+  <code>
+   url2-koa
+  </code>
+  目前具备非常好的模块化，所有处理URL的函数按功能组存放在
+  <code>
+   controllers
+  </code>
+  目录，今后我们也只需要不断往这个目录下加东西就可以了，
+  <code>
+   app.js
+  </code>
+  保持不变。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/koa/url-koa">
+   url-koa
+  </a>
+ </p>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/koa/url2-koa">
+   url2-koa
+  </a>
+ </p>
+</div>
+</body></html>

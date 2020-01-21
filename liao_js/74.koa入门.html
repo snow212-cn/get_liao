@@ -1,0 +1,369 @@
+<html><head><meta charset="utf-8"/><title>koa入门</title></head><body><h1>koa入门</h1><div class="x-wiki-content x-main-content">
+ <h3>
+  创建koa2工程
+ </h3>
+ <p>
+  首先，我们创建一个目录
+  <code>
+   hello-koa
+  </code>
+  并作为工程目录用VS Code打开。然后，我们创建
+  <code>
+   app.js
+  </code>
+  ，输入以下代码：
+ </p>
+ <pre><code>// 导入koa，和koa 1.x不同，在koa2中，我们导入的是一个class，因此用大写的Koa表示:
+const Koa = require('koa');
+
+// 创建一个Koa对象表示web app本身:
+const app = new Koa();
+
+// 对于任何请求，app将调用该异步函数处理请求：
+app.use(async (ctx, next) =&gt; {
+    await next();
+    ctx.response.type = 'text/html';
+    ctx.response.body = '&lt;h1&gt;Hello, koa2!&lt;/h1&gt;';
+});
+
+// 在端口3000监听:
+app.listen(3000);
+console.log('app started at port 3000...');
+</code></pre>
+ <p>
+  对于每一个http请求，koa将调用我们传入的异步函数来处理：
+ </p>
+ <pre><code>async (ctx, next) =&gt; {
+    await next();
+    // 设置response的Content-Type:
+    ctx.response.type = 'text/html';
+    // 设置response的内容:
+    ctx.response.body = '&lt;h1&gt;Hello, koa2!&lt;/h1&gt;';
+}
+</code></pre>
+ <p>
+  其中，参数
+  <code>
+   ctx
+  </code>
+  是由koa传入的封装了request和response的变量，我们可以通过它访问request和response，
+  <code>
+   next
+  </code>
+  是koa传入的将要处理的下一个异步函数。
+ </p>
+ <p>
+  上面的异步函数中，我们首先用
+  <code>
+   await next();
+  </code>
+  处理下一个异步函数，然后，设置response的Content-Type和内容。
+ </p>
+ <p>
+  由
+  <code>
+   async
+  </code>
+  标记的函数称为异步函数，在异步函数中，可以用
+  <code>
+   await
+  </code>
+  调用另一个异步函数，这两个关键字将在ES7中引入。
+ </p>
+ <p>
+  现在我们遇到第一个问题：koa这个包怎么装，
+  <code>
+   app.js
+  </code>
+  才能正常导入它？
+ </p>
+ <p>
+  方法一：可以用npm命令直接安装koa。先打开命令提示符，务必把当前目录切换到
+  <code>
+   hello-koa
+  </code>
+  这个目录，然后执行命令：
+ </p>
+ <pre><code>C:\...\hello-koa&gt; npm install koa@2.0.0
+</code></pre>
+ <p>
+  npm会把koa2以及koa2依赖的所有包全部安装到当前目录的node_modules目录下。
+ </p>
+ <p>
+  方法二：在
+  <code>
+   hello-koa
+  </code>
+  这个目录下创建一个
+  <code>
+   package.json
+  </code>
+  ，这个文件描述了我们的
+  <code>
+   hello-koa
+  </code>
+  工程会用到哪些包。完整的文件内容如下：
+ </p>
+ <pre><code>{
+    "name": "hello-koa2",
+    "version": "1.0.0",
+    "description": "Hello Koa 2 example with async",
+    "main": "app.js",
+    "scripts": {
+        "start": "node app.js"
+    },
+    "keywords": [
+        "koa",
+        "async"
+    ],
+    "author": "Michael Liao",
+    "license": "Apache-2.0",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/michaelliao/learn-javascript.git"
+    },
+    "dependencies": {
+        "koa": "2.0.0"
+    }
+}
+
+</code></pre>
+ <p>
+  其中，
+  <code>
+   dependencies
+  </code>
+  描述了我们的工程依赖的包以及版本号。其他字段均用来描述项目信息，可任意填写。
+ </p>
+ <p>
+  然后，我们在
+  <code>
+   hello-koa
+  </code>
+  目录下执行
+  <code>
+   npm install
+  </code>
+  就可以把所需包以及依赖包一次性全部装好：
+ </p>
+ <pre><code>C:\...\hello-koa&gt; npm install
+</code></pre>
+ <p>
+  很显然，第二个方法更靠谱，因为我们只要在
+  <code>
+   package.json
+  </code>
+  正确设置了依赖，npm就会把所有用到的包都装好。
+ </p>
+ <p>
+  <em>
+   注意
+  </em>
+  ，任何时候都可以直接删除整个
+  <code>
+   node_modules
+  </code>
+  目录，因为用
+  <code>
+   npm install
+  </code>
+  命令可以完整地重新下载所有依赖。并且，这个目录不应该被放入版本控制中。
+ </p>
+ <p>
+  现在，我们的工程结构如下：
+ </p>
+ <pre><code>hello-koa/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- app.js &lt;-- 使用koa的js
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  紧接着，我们在
+  <code>
+   package.json
+  </code>
+  中添加依赖包：
+ </p>
+ <pre><code>"dependencies": {
+    "koa": "2.0.0"
+}
+</code></pre>
+ <p>
+  然后使用
+  <code>
+   npm install
+  </code>
+  命令安装后，在VS Code中执行
+  <code>
+   app.js
+  </code>
+  ，调试控制台输出如下：
+ </p>
+ <pre><code>node --debug-brk=40645 --nolazy app.js 
+Debugger listening on port 40645
+app started at port 3000...
+</code></pre>
+ <p>
+  我们打开浏览器，输入
+  <code>
+   http://localhost:3000
+  </code>
+  ，即可看到效果：
+ </p>
+ <p>
+  <img alt="koa-browser" data-src="/files/attachments/1099750011544960/l" src="https://www.liaoxuefeng.com/files/attachments/1099750011544960/l"/>
+ </p>
+ <p>
+  还可以直接用命令
+  <code>
+   node app.js
+  </code>
+  在命令行启动程序，或者用
+  <code>
+   npm start
+  </code>
+  启动。
+  <code>
+   npm start
+  </code>
+  命令会让npm执行定义在
+  <code>
+   package.json
+  </code>
+  文件中的start对应命令：
+ </p>
+ <pre><code>"scripts": {
+    "start": "node app.js"
+}
+</code></pre>
+ <h3>
+  koa middleware
+ </h3>
+ <p>
+  让我们再仔细看看koa的执行逻辑。核心代码是：
+ </p>
+ <pre><code>app.use(async (ctx, next) =&gt; {
+    await next();
+    ctx.response.type = 'text/html';
+    ctx.response.body = '&lt;h1&gt;Hello, koa2!&lt;/h1&gt;';
+});
+</code></pre>
+ <p>
+  每收到一个http请求，koa就会调用通过
+  <code>
+   app.use()
+  </code>
+  注册的async函数，并传入
+  <code>
+   ctx
+  </code>
+  和
+  <code>
+   next
+  </code>
+  参数。
+ </p>
+ <p>
+  我们可以对
+  <code>
+   ctx
+  </code>
+  操作，并设置返回内容。但是为什么要调用
+  <code>
+   await next()
+  </code>
+  ？
+ </p>
+ <p>
+  原因是koa把很多async函数组成一个处理链，每个async函数都可以做一些自己的事情，然后用
+  <code>
+   await next()
+  </code>
+  来调用下一个async函数。我们把每个async函数称为middleware，这些middleware可以组合起来，完成很多有用的功能。
+ </p>
+ <p>
+  例如，可以用以下3个middleware组成处理链，依次打印日志，记录处理时间，输出HTML：
+ </p>
+ <pre><code>app.use(async (ctx, next) =&gt; {
+    console.log(`${ctx.request.method} ${ctx.request.url}`); // 打印URL
+    await next(); // 调用下一个middleware
+});
+
+app.use(async (ctx, next) =&gt; {
+    const start = new Date().getTime(); // 当前时间
+    await next(); // 调用下一个middleware
+    const ms = new Date().getTime() - start; // 耗费时间
+    console.log(`Time: ${ms}ms`); // 打印耗费时间
+});
+
+app.use(async (ctx, next) =&gt; {
+    await next();
+    ctx.response.type = 'text/html';
+    ctx.response.body = '&lt;h1&gt;Hello, koa2!&lt;/h1&gt;';
+});
+</code></pre>
+ <p>
+  middleware的顺序很重要，也就是调用
+  <code>
+   app.use()
+  </code>
+  的顺序决定了middleware的顺序。
+ </p>
+ <p>
+  此外，如果一个middleware没有调用
+  <code>
+   await next()
+  </code>
+  ，会怎么办？答案是后续的middleware将不再执行了。这种情况也很常见，例如，一个检测用户权限的middleware可以决定是否继续处理请求，还是直接返回403错误：
+ </p>
+ <pre><code>app.use(async (ctx, next) =&gt; {
+    if (await checkUserPermission(ctx)) {
+        await next();
+    } else {
+        ctx.response.status = 403;
+    }
+});
+</code></pre>
+ <p>
+  理解了middleware，我们就已经会用koa了！
+ </p>
+ <p>
+  最后注意
+  <code>
+   ctx
+  </code>
+  对象有一些简写的方法，例如
+  <code>
+   ctx.url
+  </code>
+  相当于
+  <code>
+   ctx.request.url
+  </code>
+  ，
+  <code>
+   ctx.type
+  </code>
+  相当于
+  <code>
+   ctx.response.type
+  </code>
+  。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/koa/hello-koa">
+   hello-koa
+  </a>
+ </p>
+</div>
+</body></html>

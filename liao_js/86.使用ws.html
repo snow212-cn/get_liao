@@ -1,0 +1,256 @@
+<html><head><meta charset="utf-8"/><title>使用ws</title></head><body><h1>使用ws</h1><div class="x-wiki-content x-main-content">
+ <p>
+  要使用WebSocket，关键在于服务器端支持，这样，我们才有可能用支持WebSocket的浏览器使用WebSocket。
+ </p>
+ <h3>
+  ws模块
+ </h3>
+ <p>
+  在Node.js中，使用最广泛的WebSocket模块是
+  <code>
+   ws
+  </code>
+  ，我们创建一个
+  <code>
+   hello-ws
+  </code>
+  的VS Code工程，然后在
+  <code>
+   package.json
+  </code>
+  中添加
+  <code>
+   ws
+  </code>
+  的依赖：
+ </p>
+ <pre><code>"dependencies": {
+    "ws": "1.1.1"
+}
+</code></pre>
+ <p>
+  整个工程结构如下：
+ </p>
+ <pre><code>hello-ws/
+|
++- .vscode/
+|  |
+|  +- launch.json &lt;-- VSCode 配置文件
+|
++- app.js &lt;-- 启动js文件
+|
++- package.json &lt;-- 项目描述文件
+|
++- node_modules/ &lt;-- npm安装的所有依赖包
+</code></pre>
+ <p>
+  运行
+  <code>
+   npm install
+  </code>
+  后，我们就可以在
+  <code>
+   app.js
+  </code>
+  中编写WebSocket的服务器端代码。
+ </p>
+ <p>
+  创建一个WebSocket的服务器实例非常容易：
+ </p>
+ <pre><code>// 导入WebSocket模块:
+const WebSocket = require('ws');
+
+// 引用Server类:
+const WebSocketServer = WebSocket.Server;
+
+// 实例化:
+const wss = new WebSocketServer({
+    port: 3000
+});
+</code></pre>
+ <p>
+  这样，我们就在3000端口上打开了一个WebSocket Server，该实例由变量
+  <code>
+   wss
+  </code>
+  引用。
+ </p>
+ <p>
+  接下来，如果有WebSocket请求接入，
+  <code>
+   wss
+  </code>
+  对象可以响应
+  <code>
+   connection
+  </code>
+  事件来处理这个WebSocket：
+ </p>
+ <pre><code>wss.on('connection', function (ws) {
+    console.log(`[SERVER] connection()`);
+    ws.on('message', function (message) {
+        console.log(`[SERVER] Received: ${message}`);
+        ws.send(`ECHO: ${message}`, (err) =&gt; {
+            if (err) {
+                console.log(`[SERVER] error: ${err}`);
+            }
+        });
+    })
+});
+</code></pre>
+ <p>
+  在
+  <code>
+   connection
+  </code>
+  事件中，回调函数会传入一个
+  <code>
+   WebSocket
+  </code>
+  的实例，表示这个WebSocket连接。对于每个WebSocket连接，我们都要对它绑定某些事件方法来处理不同的事件。这里，我们通过响应
+  <code>
+   message
+  </code>
+  事件，在收到消息后再返回一个
+  <code>
+   ECHO: xxx
+  </code>
+  的消息给客户端。
+ </p>
+ <h3>
+  创建WebSocket连接
+ </h3>
+ <p>
+  现在，这个简单的服务器端WebSocket程序就编写好了。如何真正创建WebSocket并且给服务器发消息呢？方法是在浏览器中写JavaScript代码。
+ </p>
+ <p>
+  先在VS Code中执行
+  <code>
+   app.js
+  </code>
+  ，或者在命令行用
+  <code>
+   npm start
+  </code>
+  执行。然后，在当前页面下，直接打开可以执行JavaScript代码的浏览器Console，依次输入代码：
+ </p>
+ <pre><code>// 打开一个WebSocket:
+var ws = new WebSocket('ws://localhost:3000/test');
+// 响应onmessage事件:
+ws.onmessage = function(msg) { console.log(msg); };
+// 给服务器发送一个字符串:
+ws.send('Hello!');
+</code></pre>
+ <p>
+  一切正常的话，可以看到Console的输出如下：
+ </p>
+ <pre><code>MessageEvent {isTrusted: true, data: "ECHO: Hello!", origin: "ws://localhost:3000", lastEventId: "", source: null…}
+</code></pre>
+ <p>
+  这样，我们就在浏览器中成功地收到了服务器发送的消息！
+ </p>
+ <p>
+  如果嫌在浏览器中输入JavaScript代码比较麻烦，我们还可以直接用
+  <code>
+   ws
+  </code>
+  模块提供的
+  <code>
+   WebSocket
+  </code>
+  来充当客户端。换句话说，
+  <code>
+   ws
+  </code>
+  模块既包含了服务器端，又包含了客户端。
+ </p>
+ <p>
+  <code>
+   ws
+  </code>
+  的
+  <code>
+   WebSocket
+  </code>
+  就表示客户端，它其实就是WebSocketServer响应
+  <code>
+   connection
+  </code>
+  事件时回调函数传入的变量
+  <code>
+   ws
+  </code>
+  的类型。
+ </p>
+ <p>
+  客户端的写法如下：
+ </p>
+ <pre><code>let ws = new WebSocket('ws://localhost:3000/test');
+
+// 打开WebSocket连接后立刻发送一条消息:
+ws.on('open', function () {
+    console.log(`[CLIENT] open()`);
+    ws.send('Hello!');
+});
+
+// 响应收到的消息:
+ws.on('message', function (message) {
+    console.log(`[CLIENT] Received: ${message}`);
+}
+</code></pre>
+ <p>
+  在Node环境下，
+  <code>
+   ws
+  </code>
+  模块的客户端可以用于测试服务器端代码，否则，每次都必须在浏览器执行JavaScript代码。
+ </p>
+ <h3>
+  同源策略
+ </h3>
+ <p>
+  从上面的测试可以看出，WebSocket协议本身不要求同源策略（Same-origin Policy），也就是某个地址为
+  <code>
+   http://a.com
+  </code>
+  的网页可以通过WebSocket连接到
+  <code>
+   ws://b.com
+  </code>
+  。但是，浏览器会发送
+  <code>
+   Origin
+  </code>
+  的HTTP头给服务器，服务器可以根据
+  <code>
+   Origin
+  </code>
+  拒绝这个WebSocket请求。所以，是否要求同源要看服务器端如何检查。
+ </p>
+ <h3>
+  路由
+ </h3>
+ <p>
+  还需要注意到服务器在响应
+  <code>
+   connection
+  </code>
+  事件时并未检查请求的路径，因此，在客户端打开
+  <code>
+   ws://localhost:3000/any/path
+  </code>
+  可以写任意的路径。
+ </p>
+ <p>
+  实际应用中还需要根据不同的路径实现不同的功能。
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/ws/hello-ws">
+   hello-ws
+  </a>
+ </p>
+</div>
+</body></html>

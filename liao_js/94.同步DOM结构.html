@@ -1,0 +1,185 @@
+<html><head><meta charset="utf-8"/><title>同步DOM结构</title></head><body><h1>同步DOM结构</h1><div class="x-wiki-content x-main-content">
+ <p>
+  除了简单的单向绑定和双向绑定，MVVM还有一个重要的用途，就是让Model和DOM的结构保持同步。
+ </p>
+ <p>
+  我们用一个TODO的列表作为示例，从用户角度看，一个TODO列表在DOM结构的表现形式就是一组
+  <code>
+   &lt;li&gt;
+  </code>
+  节点：
+ </p>
+ <pre><code>&lt;ol&gt;
+    &lt;li&gt;
+        &lt;dl&gt;
+            &lt;dt&gt;产品评审&lt;/dt&gt;
+            &lt;dd&gt;新款iPhone上市前评审&lt;/dd&gt;
+        &lt;/dl&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;dl&gt;
+            &lt;dt&gt;开发计划&lt;/dt&gt;
+            &lt;dd&gt;与PM确定下一版Android开发计划&lt;/dd&gt;
+        &lt;/dl&gt;
+    &lt;/li&gt;
+    &lt;li&gt;
+        &lt;dl&gt;
+            &lt;dt&gt;VC会议&lt;/dt&gt;
+            &lt;dd&gt;敲定C轮5000万美元融资&lt;/dd&gt;
+        &lt;/dl&gt;
+    &lt;/li&gt;
+&lt;/ol&gt;
+</code></pre>
+ <p>
+  而对应的Model可以用JavaScript数组表示：
+ </p>
+ <pre><code>todos: [
+    {
+        name: '产品评审',
+        description: '新款iPhone上市前评审'
+    },
+    {
+        name: '开发计划',
+        description: '与PM确定下一版Android开发计划'
+    },
+    {
+        name: 'VC会议',
+        description: '敲定C轮5000万美元融资'
+    }
+]
+</code></pre>
+ <p>
+  使用MVVM时，当我们更新Model时，DOM结构会随着Model的变化而自动更新。当
+  <code>
+   todos
+  </code>
+  数组增加或删除元素时，相应的DOM节点会增加
+  <code>
+   &lt;li&gt;
+  </code>
+  或者删除
+  <code>
+   &lt;li&gt;
+  </code>
+  节点。
+ </p>
+ <p>
+  在Vue中，可以使用
+  <code>
+   v-for
+  </code>
+  指令来实现：
+ </p>
+ <pre><code>&lt;ol&gt;
+    &lt;li v-for="t in todos"&gt;
+        &lt;dl&gt;
+            &lt;dt&gt;{{ t.name }}&lt;/dt&gt;
+            &lt;dd&gt;{{ t.description }}&lt;/dd&gt;
+        &lt;/dl&gt;
+    &lt;/li&gt;
+&lt;/ol&gt;
+</code></pre>
+ <p>
+  <code>
+   v-for
+  </code>
+  指令把数组和一组
+  <code>
+   &lt;li&gt;
+  </code>
+  元素绑定了。在
+  <code>
+   &lt;li&gt;
+  </code>
+  元素内部，用循环变量
+  <code>
+   t
+  </code>
+  引用某个属性，例如，
+  <code>
+   {{ t.name }}
+  </code>
+  。这样，我们只关心如何更新Model，不关心如何增删DOM节点，大大简化了整个页面的逻辑。
+ </p>
+ <p>
+  我们可以在浏览器console中用
+  <code>
+   window.vm.todos[0].name='计划有变'
+  </code>
+  查看View的变化，或者通过
+  <code>
+   window.vm.todos.push({name:'新计划',description:'blabla...'})
+  </code>
+  来增加一个数组元素，从而自动添加一个
+  <code>
+   &lt;li&gt;
+  </code>
+  元素。
+ </p>
+ <p>
+  需要注意的是，Vue之所以能够监听Model状态的变化，是因为JavaScript语言本身提供了
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Proxy">
+   Proxy
+  </a>
+  或者
+  <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/observe">
+   Object.observe()
+  </a>
+  机制来监听对象状态的变化。但是，对于数组元素的赋值，却没有办法直接监听，因此，如果我们直接对数组元素赋值：
+ </p>
+ <pre><code>vm.todos[0] = {
+    name: 'New name',
+    description: 'New description'
+};
+</code></pre>
+ <p>
+  会导致Vue无法更新View。
+ </p>
+ <p>
+  正确的方法是不要对数组元素赋值，而是更新：
+ </p>
+ <pre><code>vm.todos[0].name = 'New name';
+vm.todos[0].description = 'New description';
+</code></pre>
+ <p>
+  或者，通过
+  <code>
+   splice()
+  </code>
+  方法，删除某个元素后，再添加一个元素，达到“赋值”的效果：
+ </p>
+ <pre><code>var index = 0;
+var newElement = {...};
+vm.todos.splice(index, 1, newElement);
+</code></pre>
+ <p>
+  Vue可以监听数组的
+  <code>
+   splice
+  </code>
+  、
+  <code>
+   push
+  </code>
+  、
+  <code>
+   unshift
+  </code>
+  等方法调用，所以，上述代码可以正确更新View。
+ </p>
+ <p>
+  用CSS修饰后的页面效果如下：
+ </p>
+ <p>
+  <img alt="todo-mvvm" data-src="/files/attachments/1109540374313216/l" src="https://www.liaoxuefeng.com/files/attachments/1109540374313216/l"/>
+ </p>
+ <h3>
+  参考源码
+ </h3>
+ <p>
+  <a href="https://github.com/michaelliao/learn-javascript/tree/master/samples/node/web/vue/vue-todo">
+   vue-todo
+  </a>
+ </p>
+</div>
+</body></html>

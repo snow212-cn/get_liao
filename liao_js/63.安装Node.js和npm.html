@@ -1,0 +1,141 @@
+<html><head><meta charset="utf-8"/><title>安装Node.js和npm</title></head><body><h1>安装Node.js和npm</h1><div class="x-wiki-content x-main-content">
+ <p>
+  由于Node.js平台是在后端运行JavaScript代码，所以，必须首先在本机安装Node环境。
+ </p>
+ <h3>
+  安装Node.js
+ </h3>
+ <p>
+  目前Node.js的最新版本是7.6.x。首先，从
+  <a href="https://nodejs.org/">
+   Node.js官网
+  </a>
+  下载对应平台的安装程序，网速慢的童鞋请移步
+  <a href="https://pan.baidu.com/s/1kU5OCOB#list/path=%2Fpub%2Fnodejs">
+   国内镜像
+  </a>
+  。
+ </p>
+ <p>
+  在Windows上安装时务必选择全部组件，包括勾选
+  <code>
+   Add to Path
+  </code>
+  。
+ </p>
+ <p>
+  安装完成后，在Windows环境下，请打开命令提示符，然后输入
+  <code>
+   node -v
+  </code>
+  ，如果安装正常，你应该看到
+  <code>
+   v7.6.0
+  </code>
+  这样的输出：
+ </p>
+ <pre><code>C:\Users\IEUser&gt;node -v
+v7.6.0
+</code></pre>
+ <p>
+  继续在命令提示符输入
+  <code>
+   node
+  </code>
+  ，此刻你将进入Node.js的交互环境。在交互环境下，你可以输入任意JavaScript语句，例如
+  <code>
+   100+200
+  </code>
+  ，回车后将得到输出结果。
+ </p>
+ <p>
+  要退出Node.js环境，连按两次Ctrl+C。
+ </p>
+ <video controls="" height="360" width="640">
+  <source src="http://michaelliao.gitcafe.io/video/node/install-node.mp4"/>
+   <source src="http://github.liaoxuefeng.com/sinaweibopy/video/node/install-node.mp4"/>
+   
+  
+ </video>
+ <p>
+  在Mac或Linux环境下，请打开终端，然后输入
+  <code>
+   node -v
+  </code>
+  ，你应该看到如下输出：
+ </p>
+ <pre><code>$ node -v
+v7.6.0
+</code></pre>
+ <p>
+  如果版本号小于
+  <code>
+   v7.6.0
+  </code>
+  ，说明Node.js版本不对，后面章节的代码不保证能正常运行，请重新安装最新版本。
+ </p>
+ <h3>
+  npm
+ </h3>
+ <p>
+  在正式开始Node.js学习之前，我们先认识一下npm。
+ </p>
+ <p>
+  npm是什么东东？npm其实是Node.js的包管理工具（package manager）。
+ </p>
+ <p>
+  为啥我们需要一个包管理工具呢？因为我们在Node.js上开发时，会用到很多别人写的JavaScript代码。如果我们要使用别人写的某个包，每次都根据名称搜索一下官方网站，下载代码，解压，再使用，非常繁琐。于是一个集中管理的工具应运而生：大家都把自己开发的模块打包后放到npm官网上，如果要使用，直接通过npm安装就可以直接用，不用管代码存在哪，应该从哪下载。
+ </p>
+ <p>
+  更重要的是，如果我们要使用模块A，而模块A又依赖于模块B，模块B又依赖于模块X和模块Y，npm可以根据依赖关系，把所有依赖的包都下载下来并管理起来。否则，靠我们自己手动管理，肯定既麻烦又容易出错。
+ </p>
+ <p>
+  讲了这么多，npm究竟在哪？
+ </p>
+ <p>
+  其实npm已经在Node.js安装的时候顺带装好了。我们在命令提示符或者终端输入
+  <code>
+   npm -v
+  </code>
+  ，应该看到类似的输出：
+ </p>
+ <pre><code>C:\&gt;npm -v
+4.1.2
+</code></pre>
+ <p>
+  如果直接输入
+  <code>
+   npm
+  </code>
+  ，你会看到类似下面的输出：
+ </p>
+ <pre><code>C:\&gt; npm
+
+Usage: npm &lt;command&gt;
+
+where &lt;command&gt; is one of:
+    ...
+</code></pre>
+ <p>
+  上面的一大堆文字告诉你，
+  <code>
+   npm
+  </code>
+  需要跟上命令。现在我们不用关心这些命令，后面会一一讲到。目前，你只需要确保npm正确安装了，能运行就行。
+ </p>
+ <h3>
+  小结
+ </h3>
+ <p>
+  请在本机安装Node.js环境，并确保
+  <code>
+   node
+  </code>
+  和
+  <code>
+   npm
+  </code>
+  能正常运行。
+ </p>
+</div>
+</body></html>

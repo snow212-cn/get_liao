@@ -1,0 +1,185 @@
+<html><head><meta charset="utf-8"/><title>Arrays</title></head><body><h1>Arrays</h1><div class="x-wiki-content x-main-content">
+ <p>
+  underscore为
+  <code>
+   Array
+  </code>
+  提供了许多工具类方法，可以更方便快捷地操作
+  <code>
+   Array
+  </code>
+  。
+ </p>
+ <h3>
+  first / last
+ </h3>
+ <p>
+  顾名思义，这两个函数分别取第一个和最后一个元素：
+ </p>
+ <pre><code>'use strict';
+var arr = [2, 4, 6, 8];
+_.first(arr); // 2
+_.last(arr); // 8
+</code></pre>
+ <h3>
+  flatten
+ </h3>
+ <p>
+  <code>
+   flatten()
+  </code>
+  接收一个
+  <code>
+   Array
+  </code>
+  ，无论这个
+  <code>
+   Array
+  </code>
+  里面嵌套了多少个
+  <code>
+   Array
+  </code>
+  ，
+  <code>
+   flatten()
+  </code>
+  最后都把它们变成一个一维数组：
+ </p>
+ <pre><code>'use strict';
+
+_.flatten([1, [2], [3, [[4], [5]]]]); // [1, 2, 3, 4, 5]
+</code></pre>
+ <h3>
+  zip / unzip
+ </h3>
+ <p>
+  <code>
+   zip()
+  </code>
+  把两个或多个数组的所有元素按索引对齐，然后按索引合并成新数组。例如，你有一个
+  <code>
+   Array
+  </code>
+  保存了名字，另一个
+  <code>
+   Array
+  </code>
+  保存了分数，现在，要把名字和分数给对上，用
+  <code>
+   zip()
+  </code>
+  轻松实现：
+ </p>
+ <pre><code>'use strict';
+
+var names = ['Adam', 'Lisa', 'Bart'];
+var scores = [85, 92, 59];
+_.zip(names, scores);
+// [['Adam', 85], ['Lisa', 92], ['Bart', 59]]
+</code></pre>
+ <p>
+  <code>
+   unzip()
+  </code>
+  则是反过来：
+ </p>
+ <pre><code>'use strict';
+var namesAndScores = [['Adam', 85], ['Lisa', 92], ['Bart', 59]];
+_.unzip(namesAndScores);
+// [['Adam', 'Lisa', 'Bart'], [85, 92, 59]]
+</code></pre>
+ <h3>
+  object
+ </h3>
+ <p>
+  有时候你会想，与其用
+  <code>
+   zip()
+  </code>
+  ，为啥不把名字和分数直接对应成Object呢？别急，
+  <code>
+   object()
+  </code>
+  函数就是干这个的：
+ </p>
+ <pre><code>'use strict';
+
+var names = ['Adam', 'Lisa', 'Bart'];
+var scores = [85, 92, 59];
+_.object(names, scores);
+// {Adam: 85, Lisa: 92, Bart: 59}
+</code></pre>
+ <p>
+  注意
+  <code>
+   _.object()
+  </code>
+  是一个函数，不是JavaScript的
+  <code>
+   Object
+  </code>
+  对象。
+ </p>
+ <h3>
+  range
+ </h3>
+ <p>
+  <code>
+   range()
+  </code>
+  让你快速生成一个序列，不再需要用
+  <code>
+   for
+  </code>
+  循环实现了：
+ </p>
+ <pre><code>'use strict';
+
+// 从0开始小于10:
+_.range(10); // [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+// 从1开始小于11：
+_.range(1, 11); // [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+// 从0开始小于30，步长5:
+_.range(0, 30, 5); // [0, 5, 10, 15, 20, 25]
+
+// 从0开始大于-10，步长-1:
+_.range(0, -10, -1); // [0, -1, -2, -3, -4, -5, -6, -7, -8, -9]
+</code></pre>
+ <p>
+  更多完整的函数请参考underscore的文档：
+  <a href="http://underscorejs.org/#arrays">
+   http://underscorejs.org/#arrays
+  </a>
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  请根据underscore官方文档，使用
+  <code>
+   _.uniq
+  </code>
+  对数组元素进行
+  <em>
+   不区分大小写
+  </em>
+  去重：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+var arr = ['Apple', 'orange', 'banana', 'ORANGE', 'apple', 'PEAR'];
+----
+var result = ???
+----
+// 测试
+if (result.toString() === ["Apple", "orange", "banana", "PEAR"].toString()) {
+    console.log('测试成功!');
+} else {
+    console.log('测试失败!');
+}
+</code></pre>
+</div>
+</body></html>

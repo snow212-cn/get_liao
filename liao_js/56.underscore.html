@@ -1,0 +1,108 @@
+<html><head><meta charset="utf-8"/><title>underscore</title></head><body><h1>underscore</h1><div class="x-wiki-content x-main-content">
+ <p>
+  前面我们已经讲过了，JavaScript是函数式编程语言，支持高阶函数和闭包。函数式编程非常强大，可以写出非常简洁的代码。例如
+  <code>
+   Array
+  </code>
+  的
+  <code>
+   map()
+  </code>
+  和
+  <code>
+   filter()
+  </code>
+  方法：
+ </p>
+ <pre><code>'use strict';
+var a1 = [1, 4, 9, 16];
+var a2 = a1.map(Math.sqrt); // [1, 2, 3, 4]
+var a3 = a2.filter((x) =&gt; { return x % 2 === 0; }); // [2, 4]
+</code></pre>
+ <p>
+  现在问题来了，
+  <code>
+   Array
+  </code>
+  有
+  <code>
+   map()
+  </code>
+  和
+  <code>
+   filter()
+  </code>
+  方法，可是Object没有这些方法。此外，低版本的浏览器例如IE6～8也没有这些方法，怎么办？
+ </p>
+ <p>
+  方法一，自己把这些方法添加到
+  <code>
+   Array.prototype
+  </code>
+  中，然后给
+  <code>
+   Object.prototype
+  </code>
+  也加上
+  <code>
+   mapObject()
+  </code>
+  等类似的方法。
+ </p>
+ <p>
+  方法二，直接找一个成熟可靠的第三方开源库，使用统一的函数来实现
+  <code>
+   map()
+  </code>
+  、
+  <code>
+   filter()
+  </code>
+  这些操作。
+ </p>
+ <p>
+  我们采用方法二，选择的第三方库就是underscore。
+ </p>
+ <p>
+  正如jQuery统一了不同浏览器之间的DOM操作的差异，让我们可以简单地对DOM进行操作，underscore则提供了一套完善的函数式编程的接口，让我们更方便地在JavaScript中实现函数式编程。
+ </p>
+ <p>
+  jQuery在加载时，会把自身绑定到唯一的全局变量
+  <code>
+   $
+  </code>
+  上，underscore与其类似，会把自身绑定到唯一的全局变量
+  <code>
+   _
+  </code>
+  上，这也是为啥它的名字叫underscore的原因。
+ </p>
+ <p>
+  用underscore实现
+  <code>
+   map()
+  </code>
+  操作如下：
+ </p>
+ <pre><code>'use strict';
+_.map([1, 2, 3], (x) =&gt; x * x); // [1, 4, 9]
+</code></pre>
+ <p>
+  咋一看比直接用
+  <code>
+   Array.map()
+  </code>
+  要麻烦一点，可是underscore的
+  <code>
+   map()
+  </code>
+  还可以作用于Object：
+ </p>
+ <pre><code>'use strict';
+_.map({ a: 1, b: 2, c: 3 }, (v, k) =&gt; k + '=' + v); // ['a=1', 'b=2', 'c=3']
+</code></pre>
+ <p>
+  后面我们会详细介绍underscore提供了一系列函数式接口。
+ </p>
+</div>
+</body></html>
