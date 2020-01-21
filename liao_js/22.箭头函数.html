@@ -1,0 +1,197 @@
+<html><head><meta charset="utf-8"/><title>箭头函数</title></head><body><h1>箭头函数</h1><div class="x-wiki-content x-main-content">
+ <p>
+  ES6标准新增了一种新的函数：Arrow Function（箭头函数）。
+ </p>
+ <p>
+  为什么叫Arrow Function？因为它的定义用的就是一个箭头：
+ </p>
+ <pre><code>x =&gt; x * x
+</code></pre>
+ <p>
+  上面的箭头函数相当于：
+ </p>
+ <pre><code>function (x) {
+    return x * x;
+}
+</code></pre>
+ <p>
+  在继续学习箭头函数之前，请测试你的浏览器是否支持ES6的Arrow Function：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+var fn = x =&gt; x * x;
+----
+console.log('你的浏览器支持ES6的Arrow Function!');
+</code></pre>
+ <p>
+  箭头函数相当于匿名函数，并且简化了函数定义。箭头函数有两种格式，一种像上面的，只包含一个表达式，连
+  <code>
+   { ... }
+  </code>
+  和
+  <code>
+   return
+  </code>
+  都省略掉了。还有一种可以包含多条语句，这时候就不能省略
+  <code>
+   { ... }
+  </code>
+  和
+  <code>
+   return
+  </code>
+  ：
+ </p>
+ <pre><code>x =&gt; {
+    if (x &gt; 0) {
+        return x * x;
+    }
+    else {
+        return - x * x;
+    }
+}
+</code></pre>
+ <p>
+  如果参数不是一个，就需要用括号
+  <code>
+   ()
+  </code>
+  括起来：
+ </p>
+ <pre><code>// 两个参数:
+(x, y) =&gt; x * x + y * y
+
+// 无参数:
+() =&gt; 3.14
+
+// 可变参数:
+(x, y, ...rest) =&gt; {
+    var i, sum = x + y;
+    for (i=0; i&lt;rest.length; i++) {
+        sum += rest[i];
+    }
+    return sum;
+}
+</code></pre>
+ <p>
+  如果要返回一个对象，就要注意，如果是单表达式，这么写的话会报错：
+ </p>
+ <pre><code>// SyntaxError:
+x =&gt; { foo: x }
+</code></pre>
+ <p>
+  因为和函数体的
+  <code>
+   { ... }
+  </code>
+  有语法冲突，所以要改为：
+ </p>
+ <pre><code>// ok:
+x =&gt; ({ foo: x })
+</code></pre>
+ <h3>
+  this
+ </h3>
+ <p>
+  箭头函数看上去是匿名函数的一种简写，但实际上，箭头函数和匿名函数有个明显的区别：箭头函数内部的
+  <code>
+   this
+  </code>
+  是词法作用域，由上下文确定。
+ </p>
+ <p>
+  回顾前面的例子，由于JavaScript函数对
+  <code>
+   this
+  </code>
+  绑定的错误处理，下面的例子无法得到预期结果：
+ </p>
+ <pre><code>var obj = {
+    birth: 1990,
+    getAge: function () {
+        var b = this.birth; // 1990
+        var fn = function () {
+            return new Date().getFullYear() - this.birth; // this指向window或undefined
+        };
+        return fn();
+    }
+};
+</code></pre>
+ <p>
+  现在，箭头函数完全修复了
+  <code>
+   this
+  </code>
+  的指向，
+  <code>
+   this
+  </code>
+  总是指向词法作用域，也就是外层调用者
+  <code>
+   obj
+  </code>
+  ：
+ </p>
+ <pre><code>var obj = {
+    birth: 1990,
+    getAge: function () {
+        var b = this.birth; // 1990
+        var fn = () =&gt; new Date().getFullYear() - this.birth; // this指向obj对象
+        return fn();
+    }
+};
+obj.getAge(); // 25
+</code></pre>
+ <p>
+  如果使用箭头函数，以前的那种hack写法：
+ </p>
+ <pre><code>var that = this;
+</code></pre>
+ <p>
+  就不再需要了。
+ </p>
+ <p>
+  由于
+  <code>
+   this
+  </code>
+  在箭头函数中已经按照词法作用域绑定了，所以，用
+  <code>
+   call()
+  </code>
+  或者
+  <code>
+   apply()
+  </code>
+  调用箭头函数时，无法对
+  <code>
+   this
+  </code>
+  进行绑定，即传入的第一个参数被忽略：
+ </p>
+ <pre><code>var obj = {
+    birth: 1990,
+    getAge: function (year) {
+        var b = this.birth; // 1990
+        var fn = (y) =&gt; y - this.birth; // this.birth仍是1990
+        return fn.call({birth:2000}, year);
+    }
+};
+obj.getAge(2015); // 25
+</code></pre>
+ <h3>
+  练习
+ </h3>
+ <p>
+  请使用箭头函数简化排序时传入的函数：
+ </p>
+ <pre><code class="language-x-javascript">'use strict'
+var arr = [10, 20, 1, 2];
+----
+arr.sort((x, y) =&gt; {
+    ???
+});
+console.log(arr); // [1, 2, 10, 20]
+</code></pre>
+</div>
+</body></html>

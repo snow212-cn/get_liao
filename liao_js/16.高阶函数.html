@@ -1,0 +1,68 @@
+<html><head><meta charset="utf-8"/><title>高阶函数</title></head><body><h1>高阶函数</h1><div class="x-wiki-content x-main-content">
+ <p>
+  高阶函数英文叫Higher-order function。那么什么是高阶函数？
+ </p>
+ <p>
+  JavaScript的函数其实都指向某个变量。既然变量可以指向函数，函数的参数能接收变量，那么一个函数就可以接收另一个函数作为参数，这种函数就称之为高阶函数。
+ </p>
+ <p>
+  一个最简单的高阶函数：
+ </p>
+ <pre><code>function add(x, y, f) {
+    return f(x) + f(y);
+}
+</code></pre>
+ <p>
+  当我们调用
+  <code>
+   add(-5, 6, Math.abs)
+  </code>
+  时，参数
+  <code>
+   x
+  </code>
+  ，
+  <code>
+   y
+  </code>
+  和
+  <code>
+   f
+  </code>
+  分别接收
+  <code>
+   -5
+  </code>
+  ，
+  <code>
+   6
+  </code>
+  和函数
+  <code>
+   Math.abs
+  </code>
+  ，根据函数定义，我们可以推导计算过程为：
+ </p>
+ <pre><code>x = -5;
+y = 6;
+f = Math.abs;
+f(x) + f(y) ==&gt; Math.abs(-5) + Math.abs(6) ==&gt; 11;
+return 11;
+</code></pre>
+ <p>
+  用代码验证一下：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+function add(x, y, f) {
+    return f(x) + f(y);
+}
+----
+var x = add(-5, 6, Math.abs); // 11
+console.log(x);
+</code></pre>
+ <p>
+  编写高阶函数，就是让函数的参数能够接收别的函数。
+ </p>
+</div>
+</body></html>

@@ -1,0 +1,177 @@
+<html><head><meta charset="utf-8"/><title>修改DOM结构</title></head><body><h1>修改DOM结构</h1><div class="x-wiki-content x-main-content">
+ <p>
+  直接使用浏览器提供的API对DOM结构进行修改，不但代码复杂，而且要针对浏览器写不同的代码。
+ </p>
+ <p>
+  有了jQuery，我们就专注于操作jQuery对象本身，底层的DOM操作由jQuery完成就可以了，这样一来，修改DOM也大大简化了。
+ </p>
+ <h3>
+  添加DOM
+ </h3>
+ <p>
+  要添加新的DOM节点，除了通过jQuery的
+  <code>
+   html()
+  </code>
+  这种暴力方法外，还可以用
+  <code>
+   append()
+  </code>
+  方法，例如：
+ </p>
+ <pre><code>&lt;div id="test-div"&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;span&gt;JavaScript&lt;/span&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;span&gt;Python&lt;/span&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;span&gt;Swift&lt;/span&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  如何向列表新增一个语言？首先要拿到
+  <code>
+   &lt;ul&gt;
+  </code>
+  节点：
+ </p>
+ <pre><code>var ul = $('#test-div&gt;ul');
+</code></pre>
+ <p>
+  然后，调用
+  <code>
+   append()
+  </code>
+  传入HTML片段：
+ </p>
+ <pre><code>ul.append('&lt;li&gt;&lt;span&gt;Haskell&lt;/span&gt;&lt;/li&gt;');
+</code></pre>
+ <p>
+  除了接受字符串，
+  <code>
+   append()
+  </code>
+  还可以传入原始的DOM对象，jQuery对象和函数对象：
+ </p>
+ <pre><code>// 创建DOM对象:
+var ps = document.createElement('li');
+ps.innerHTML = '&lt;span&gt;Pascal&lt;/span&gt;';
+// 添加DOM对象:
+ul.append(ps);
+
+// 添加jQuery对象:
+ul.append($('#scheme'));
+
+// 添加函数对象:
+ul.append(function (index, html) {
+    return '&lt;li&gt;&lt;span&gt;Language - ' + index + '&lt;/span&gt;&lt;/li&gt;';
+});
+</code></pre>
+ <p>
+  传入函数时，要求返回一个字符串、DOM对象或者jQuery对象。因为jQuery的
+  <code>
+   append()
+  </code>
+  可能作用于一组DOM节点，只有传入函数才能针对每个DOM生成不同的子节点。
+ </p>
+ <p>
+  <code>
+   append()
+  </code>
+  把DOM添加到最后，
+  <code>
+   prepend()
+  </code>
+  则把DOM添加到最前。
+ </p>
+ <p>
+  另外注意，如果要添加的DOM节点已经存在于HTML文档中，它会首先从文档移除，然后再添加，也就是说，用
+  <code>
+   append()
+  </code>
+  ，你可以移动一个DOM节点。
+ </p>
+ <p>
+  如果要把新节点插入到指定位置，例如，JavaScript和Python之间，那么，可以先定位到JavaScript，然后用
+  <code>
+   after()
+  </code>
+  方法：
+ </p>
+ <pre><code>var js = $('#test-div&gt;ul&gt;li:first-child');
+js.after('&lt;li&gt;&lt;span&gt;Lua&lt;/span&gt;&lt;/li&gt;');
+</code></pre>
+ <p>
+  也就是说，同级节点可以用
+  <code>
+   after()
+  </code>
+  或者
+  <code>
+   before()
+  </code>
+  方法。
+ </p>
+ <h3>
+  删除节点
+ </h3>
+ <p>
+  要删除DOM节点，拿到jQuery对象后直接调用
+  <code>
+   remove()
+  </code>
+  方法就可以了。如果jQuery对象包含若干DOM节点，实际上可以一次删除多个DOM节点：
+ </p>
+ <pre><code>var li = $('#test-div&gt;ul&gt;li');
+li.remove(); // 所有&lt;li&gt;全被删除
+</code></pre>
+ <h3>
+  练习
+ </h3>
+ <p>
+  除了列出的3种语言外，请再添加Pascal、Lua和Ruby，然后按字母顺序排序节点：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-div"&gt;
+    &lt;ul&gt;
+        &lt;li&gt;&lt;span&gt;JavaScript&lt;/span&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;span&gt;Python&lt;/span&gt;&lt;/li&gt;
+        &lt;li&gt;&lt;span&gt;Swift&lt;/span&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;
+</code></pre>
+ <pre><code class="language-x-javascript">'use strict';
+----
+----
+// 测试:
+;(function () {
+    var s = $('#test-div&gt;ul&gt;li').map(function () {
+        return $(this).text();
+    }).get().join(',');
+    if (s === 'JavaScript,Lua,Pascal,Python,Ruby,Swift') {
+        console.log('测试通过!');
+    } else {
+        console.log('测试失败: ' + s);
+    }
+})();
+</code></pre>
+ <div id="test-div">
+  <ul>
+   <li>
+    <span>
+     JavaScript
+    </span>
+   </li>
+   <li>
+    <span>
+     Python
+    </span>
+   </li>
+   <li>
+    <span>
+     Swift
+    </span>
+   </li>
+  </ul>
+ </div>
+</div>
+</body></html>

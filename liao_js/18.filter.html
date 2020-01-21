@@ -1,0 +1,166 @@
+<html><head><meta charset="utf-8"/><title>filter</title></head><body><h1>filter</h1><div class="x-wiki-content x-main-content">
+ <p>
+  filter也是一个常用的操作，它用于把
+  <code>
+   Array
+  </code>
+  的某些元素过滤掉，然后返回剩下的元素。
+ </p>
+ <p>
+  和
+  <code>
+   map()
+  </code>
+  类似，
+  <code>
+   Array
+  </code>
+  的
+  <code>
+   filter()
+  </code>
+  也接收一个函数。和
+  <code>
+   map()
+  </code>
+  不同的是，
+  <code>
+   filter()
+  </code>
+  把传入的函数依次作用于每个元素，然后根据返回值是
+  <code>
+   true
+  </code>
+  还是
+  <code>
+   false
+  </code>
+  决定保留还是丢弃该元素。
+ </p>
+ <p>
+  例如，在一个
+  <code>
+   Array
+  </code>
+  中，删掉偶数，只保留奇数，可以这么写：
+ </p>
+ <pre><code>var arr = [1, 2, 4, 5, 6, 9, 10, 15];
+var r = arr.filter(function (x) {
+    return x % 2 !== 0;
+});
+r; // [1, 5, 9, 15]
+</code></pre>
+ <p>
+  把一个
+  <code>
+   Array
+  </code>
+  中的空字符串删掉，可以这么写：
+ </p>
+ <pre><code>var arr = ['A', '', 'B', null, undefined, 'C', '  '];
+var r = arr.filter(function (s) {
+    return s &amp;&amp; s.trim(); // 注意：IE9以下的版本没有trim()方法
+});
+r; // ['A', 'B', 'C']
+</code></pre>
+ <p>
+  可见用
+  <code>
+   filter()
+  </code>
+  这个高阶函数，关键在于正确实现一个“筛选”函数。
+ </p>
+ <h3>
+  回调函数
+ </h3>
+ <p>
+  <code>
+   filter()
+  </code>
+  接收的回调函数，其实可以有多个参数。通常我们仅使用第一个参数，表示
+  <code>
+   Array
+  </code>
+  的某个元素。回调函数还可以接收另外两个参数，表示元素的位置和数组本身：
+ </p>
+ <pre><code>var arr = ['A', 'B', 'C'];
+var r = arr.filter(function (element, index, self) {
+    console.log(element); // 依次打印'A', 'B', 'C'
+    console.log(index); // 依次打印0, 1, 2
+    console.log(self); // self就是变量arr
+    return true;
+});
+</code></pre>
+ <p>
+  利用
+  <code>
+   filter
+  </code>
+  ，可以巧妙地去除
+  <code>
+   Array
+  </code>
+  的重复元素：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+var
+    r,
+    arr = ['apple', 'strawberry', 'banana', 'pear', 'apple', 'orange', 'orange', 'strawberry'];
+----
+r = arr.filter(function (element, index, self) {
+    return self.indexOf(element) === index;
+});
+----
+console.log(r.toString());
+</code></pre>
+ <p>
+  去除重复元素依靠的是
+  <code>
+   indexOf
+  </code>
+  总是返回第一个元素的位置，后续的重复元素位置与
+  <code>
+   indexOf
+  </code>
+  返回的位置不相等，因此被
+  <code>
+   filter
+  </code>
+  滤掉了。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  请尝试用
+  <code>
+   filter()
+  </code>
+  筛选出素数：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+function get_primes(arr) {
+----
+    return [];
+----
+}
+
+// 测试:
+var
+    x,
+    r,
+    arr = [];
+for (x = 1; x &lt; 100; x++) {
+    arr.push(x);
+}
+r = get_primes(arr);
+if (r.toString() === [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97].toString()) {
+    console.log('测试通过!');
+} else {
+    console.log('测试失败: ' + r.toString());
+}
+</code></pre>
+</div>
+</body></html>

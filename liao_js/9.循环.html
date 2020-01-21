@@ -1,0 +1,321 @@
+<html><head><meta charset="utf-8"/><title>循环</title></head><body><h1>循环</h1><div class="x-wiki-content x-main-content">
+ <h3>
+  循环
+ </h3>
+ <p>
+  要计算1+2+3，我们可以直接写表达式：
+ </p>
+ <pre><code>1 + 2 + 3; // 6
+</code></pre>
+ <p>
+  要计算1+2+3+...+10，勉强也能写出来。
+ </p>
+ <p>
+  但是，要计算1+2+3+...+10000，直接写表达式就不可能了。
+ </p>
+ <p>
+  为了让计算机能计算成千上万次的重复运算，我们就需要循环语句。
+ </p>
+ <p>
+  JavaScript的循环有两种，一种是
+  <code>
+   for
+  </code>
+  循环，通过初始条件、结束条件和递增条件来循环执行语句块：
+ </p>
+ <pre><code>var x = 0;
+var i;
+for (i=1; i&lt;=10000; i++) {
+    x = x + i;
+}
+x; // 50005000
+</code></pre>
+ <p>
+  让我们来分析一下
+  <code>
+   for
+  </code>
+  循环的控制条件：
+ </p>
+ <ul>
+  <li>
+   i=1 这是初始条件，将变量i置为1；
+  </li>
+  <li>
+   i&lt;=10000 这是判断条件，满足时就继续循环，不满足就退出循环；
+  </li>
+  <li>
+   i++ 这是每次循环后的递增条件，由于每次循环后变量i都会加1，因此它终将在若干次循环后不满足判断条件
+   <code>
+    i&lt;=10000
+   </code>
+   而退出循环。
+  </li>
+ </ul>
+ <h3>
+  练习
+ </h3>
+ <p>
+  利用
+  <code>
+   for
+  </code>
+  循环计算
+  <code>
+   1 * 2 * 3 * ... * 10
+  </code>
+  的结果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+var x = ?;
+var i;
+for ...
+----
+if (x === 3628800) {
+    console.log('1 x 2 x 3 x ... x 10 = ' + x);
+}
+else {
+    console.log('计算错误');
+}
+</code></pre>
+ <p>
+  <code>
+   for
+  </code>
+  循环最常用的地方是利用索引来遍历数组：
+ </p>
+ <pre><code>var arr = ['Apple', 'Google', 'Microsoft'];
+var i, x;
+for (i=0; i&lt;arr.length; i++) {
+    x = arr[i];
+    console.log(x);
+}
+</code></pre>
+ <p>
+  <code>
+   for
+  </code>
+  循环的3个条件都是可以省略的，如果没有退出循环的判断条件，就必须使用
+  <code>
+   break
+  </code>
+  语句退出循环，否则就是死循环：
+ </p>
+ <pre><code>var x = 0;
+for (;;) { // 将无限循环下去
+    if (x &gt; 100) {
+        break; // 通过if判断来退出循环
+    }
+    x ++;
+}
+</code></pre>
+ <h3>
+  for ... in
+ </h3>
+ <p>
+  <code>
+   for
+  </code>
+  循环的一个变体是
+  <code>
+   for ... in
+  </code>
+  循环，它可以把一个对象的所有属性依次循环出来：
+ </p>
+ <pre><code>var o = {
+    name: 'Jack',
+    age: 20,
+    city: 'Beijing'
+};
+for (var key in o) {
+    console.log(key); // 'name', 'age', 'city'
+}
+</code></pre>
+ <p>
+  要过滤掉对象继承的属性，用
+  <code>
+   hasOwnProperty()
+  </code>
+  来实现：
+ </p>
+ <pre><code>var o = {
+    name: 'Jack',
+    age: 20,
+    city: 'Beijing'
+};
+for (var key in o) {
+    if (o.hasOwnProperty(key)) {
+        console.log(key); // 'name', 'age', 'city'
+    }
+}
+</code></pre>
+ <p>
+  由于
+  <code>
+   Array
+  </code>
+  也是对象，而它的每个元素的索引被视为对象的属性，因此，
+  <code>
+   for ... in
+  </code>
+  循环可以直接循环出
+  <code>
+   Array
+  </code>
+  的索引：
+ </p>
+ <pre><code>var a = ['A', 'B', 'C'];
+for (var i in a) {
+    console.log(i); // '0', '1', '2'
+    console.log(a[i]); // 'A', 'B', 'C'
+}
+</code></pre>
+ <p>
+  <em>
+   请注意
+  </em>
+  ，
+  <code>
+   for ... in
+  </code>
+  对
+  <code>
+   Array
+  </code>
+  的循环得到的是
+  <code>
+   String
+  </code>
+  而不是
+  <code>
+   Number
+  </code>
+  。
+ </p>
+ <h3>
+  while
+ </h3>
+ <p>
+  <code>
+   for
+  </code>
+  循环在已知循环的初始和结束条件时非常有用。而上述忽略了条件的
+  <code>
+   for
+  </code>
+  循环容易让人看不清循环的逻辑，此时用
+  <code>
+   while
+  </code>
+  循环更佳。
+ </p>
+ <p>
+  <code>
+   while
+  </code>
+  循环只有一个判断条件，条件满足，就不断循环，条件不满足时则退出循环。比如我们要计算100以内所有奇数之和，可以用while循环实现：
+ </p>
+ <pre><code>var x = 0;
+var n = 99;
+while (n &gt; 0) {
+    x = x + n;
+    n = n - 2;
+}
+x; // 2500
+</code></pre>
+ <p>
+  在循环内部变量
+  <code>
+   n
+  </code>
+  不断自减，直到变为
+  <code>
+   -1
+  </code>
+  时，不再满足
+  <code>
+   while
+  </code>
+  条件，循环退出。
+ </p>
+ <h3>
+  do ... while
+ </h3>
+ <p>
+  最后一种循环是
+  <code>
+   do { ... } while()
+  </code>
+  循环，它和
+  <code>
+   while
+  </code>
+  循环的唯一区别在于，不是在每次循环开始的时候判断条件，而是在每次循环完成的时候判断条件：
+ </p>
+ <pre><code>var n = 0;
+do {
+    n = n + 1;
+} while (n &lt; 100);
+n; // 100
+</code></pre>
+ <p>
+  用
+  <code>
+   do { ... } while()
+  </code>
+  循环要小心，循环体会至少执行1次，而
+  <code>
+   for
+  </code>
+  和
+  <code>
+   while
+  </code>
+  循环则可能一次都不执行。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  请利用循环遍历数组中的每个名字，并显示
+  <code>
+   Hello, xxx!
+  </code>
+  ：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+var arr = ['Bart', 'Lisa', 'Adam'];
+----
+for ...
+</code></pre>
+ <p>
+  请尝试
+  <code>
+   for
+  </code>
+  循环和
+  <code>
+   while
+  </code>
+  循环，并以正序、倒序两种方式遍历。
+ </p>
+ <h3>
+  小结
+ </h3>
+ <p>
+  循环是让计算机做重复任务的有效的方法，有些时候，如果代码写得有问题，会让程序陷入“死循环”，也就是永远循环下去。JavaScript的死循环会让浏览器无法正常显示或执行当前页面的逻辑，有的浏览器会直接挂掉，有的浏览器会在一段时间后提示你强行终止JavaScript的执行，因此，要特别注意死循环的问题。
+ </p>
+ <p>
+  在编写循环代码时，务必小心编写初始条件和判断条件，尤其是边界值。特别注意
+  <code>
+   i &lt; 100
+  </code>
+  和
+  <code>
+   i &lt;= 100
+  </code>
+  是不同的判断逻辑。
+ </p>
+</div>
+</body></html>

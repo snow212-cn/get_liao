@@ -1,0 +1,317 @@
+<html><head><meta charset="utf-8"/><title>条件判断</title></head><body><h1>条件判断</h1><div class="x-wiki-content x-main-content">
+ <p>
+  JavaScript使用
+  <code>
+   if () { ... } else { ... }
+  </code>
+  来进行条件判断。例如，根据年龄显示不同内容，可以用
+  <code>
+   if
+  </code>
+  语句实现如下：
+ </p>
+ <pre><code>var age = 20;
+if (age &gt;= 18) { // 如果age &gt;= 18为true，则执行if语句块
+    alert('adult');
+} else { // 否则执行else语句块
+    alert('teenager');
+}
+</code></pre>
+ <p>
+  其中
+  <code>
+   else
+  </code>
+  语句是可选的。如果语句块只包含一条语句，那么可以省略
+  <code>
+   {}
+  </code>
+  ：
+ </p>
+ <pre><code>var age = 20;
+if (age &gt;= 18)
+    alert('adult');
+else
+    alert('teenager');
+</code></pre>
+ <p>
+  省略
+  <code>
+   {}
+  </code>
+  的危险之处在于，如果后来想添加一些语句，却忘了写
+  <code>
+   {}
+  </code>
+  ，就改变了
+  <code>
+   if...else...
+  </code>
+  的语义，例如：
+ </p>
+ <pre><code>var age = 20;
+if (age &gt;= 18)
+    alert('adult');
+else
+    console.log('age &lt; 18'); // 添加一行日志
+    alert('teenager'); // &lt;- 这行语句已经不在else的控制范围了
+</code></pre>
+ <p>
+  上述代码的
+  <code>
+   else
+  </code>
+  子句实际上只负责执行
+  <code>
+   console.log('age &lt; 18');
+  </code>
+  ，原有的
+  <code>
+   alert('teenager');
+  </code>
+  已经不属于
+  <code>
+   if...else...
+  </code>
+  的控制范围了，它每次都会执行。
+ </p>
+ <p>
+  相反地，有
+  <code>
+   {}
+  </code>
+  的语句就不会出错：
+ </p>
+ <pre><code>var age = 20;
+if (age &gt;= 18) {
+    alert('adult');
+} else {
+    console.log('age &lt; 18');
+    alert('teenager');
+}
+</code></pre>
+ <p>
+  这就是为什么我们建议永远都要写上
+  <code>
+   {}
+  </code>
+  。
+ </p>
+ <h3>
+  多行条件判断
+ </h3>
+ <p>
+  如果还要更细致地判断条件，可以使用多个
+  <code>
+   if...else...
+  </code>
+  的组合：
+ </p>
+ <pre><code>var age = 3;
+if (age &gt;= 18) {
+    alert('adult');
+} else if (age &gt;= 6) {
+    alert('teenager');
+} else {
+    alert('kid');
+}
+</code></pre>
+ <p>
+  上述多个
+  <code>
+   if...else...
+  </code>
+  的组合实际上相当于两层
+  <code>
+   if...else...
+  </code>
+  ：
+ </p>
+ <pre><code>var age = 3;
+if (age &gt;= 18) {
+    alert('adult');
+} else {
+    if (age &gt;= 6) {
+        alert('teenager');
+    } else {
+        alert('kid');
+    }
+}
+</code></pre>
+ <p>
+  但是我们通常把
+  <code>
+   else if
+  </code>
+  连写在一起，来增加可读性。这里的
+  <code>
+   else
+  </code>
+  略掉了
+  <code>
+   {}
+  </code>
+  是没有问题的，因为它只包含一个
+  <code>
+   if
+  </code>
+  语句。注意最后一个单独的
+  <code>
+   else
+  </code>
+  不要略掉
+  <code>
+   {}
+  </code>
+  。
+ </p>
+ <p>
+  <em>
+   请注意
+  </em>
+  ，
+  <code>
+   if...else...
+  </code>
+  语句的执行特点是二选一，在多个
+  <code>
+   if...else...
+  </code>
+  语句中，如果某个条件成立，则后续就不再继续判断了。
+ </p>
+ <p>
+  试解释为什么下面的代码显示的是
+  <code>
+   teenager
+  </code>
+  ：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+var age = 20;
+----
+if (age &gt;= 6) {
+    console.log('teenager');
+} else if (age &gt;= 18) {
+    console.log('adult');
+} else {
+    console.log('kid');
+}
+</code></pre>
+ <p>
+  由于
+  <code>
+   age
+  </code>
+  的值为
+  <code>
+   20
+  </code>
+  ，它实际上同时满足条件
+  <code>
+   age &gt;= 6
+  </code>
+  和
+  <code>
+   age &gt;= 18
+  </code>
+  ，这说明条件判断的顺序非常重要。请修复后让其显示
+  <code>
+   adult
+  </code>
+  。
+ </p>
+ <p>
+  如果
+  <code>
+   if
+  </code>
+  的条件判断语句结果不是
+  <code>
+   true
+  </code>
+  或
+  <code>
+   false
+  </code>
+  怎么办？例如：
+ </p>
+ <pre><code>var s = '123';
+if (s.length) { // 条件计算结果为3
+    //
+}
+</code></pre>
+ <p>
+  JavaScript把
+  <code>
+   null
+  </code>
+  、
+  <code>
+   undefined
+  </code>
+  、
+  <code>
+   0
+  </code>
+  、
+  <code>
+   NaN
+  </code>
+  和空字符串
+  <code>
+   ''
+  </code>
+  视为
+  <code>
+   false
+  </code>
+  ，其他值一概视为
+  <code>
+   true
+  </code>
+  ，因此上述代码条件判断的结果是
+  <code>
+   true
+  </code>
+  。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  小明身高1.75，体重80.5kg。请根据BMI公式（体重除以身高的平方）帮小明计算他的BMI指数，并根据BMI指数：
+ </p>
+ <ul>
+  <li>
+   低于18.5：过轻
+  </li>
+  <li>
+   18.5-25：正常
+  </li>
+  <li>
+   25-28：过重
+  </li>
+  <li>
+   28-32：肥胖
+  </li>
+  <li>
+   高于32：严重肥胖
+  </li>
+ </ul>
+ <p>
+  用
+  <code>
+   if...else...
+  </code>
+  判断并显示结果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+var height = parseFloat(prompt('请输入身高(m):'));
+var weight = parseFloat(prompt('请输入体重(kg):'));
+----
+var bmi = ???;
+if ...
+</code></pre>
+</div>
+</body></html>

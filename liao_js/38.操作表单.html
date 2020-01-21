@@ -1,0 +1,522 @@
+<html><head><meta charset="utf-8"/><title>操作表单</title></head><body><h1>操作表单</h1><div class="x-wiki-content x-main-content">
+ <p>
+  用JavaScript操作表单和操作DOM是类似的，因为表单本身也是DOM树。
+ </p>
+ <p>
+  不过表单的输入框、下拉框等可以接收用户输入，所以用JavaScript来操作表单，可以获得用户输入的内容，或者对一个输入框设置新的内容。
+ </p>
+ <p>
+  HTML表单的输入控件主要有以下几种：
+ </p>
+ <ul>
+  <li>
+   <p>
+    文本框，对应的
+    <code>
+     &lt;input type="text"&gt;
+    </code>
+    ，用于输入文本；
+   </p>
+  </li>
+  <li>
+   <p>
+    口令框，对应的
+    <code>
+     &lt;input type="password"&gt;
+    </code>
+    ，用于输入口令；
+   </p>
+  </li>
+  <li>
+   <p>
+    单选框，对应的
+    <code>
+     &lt;input type="radio"&gt;
+    </code>
+    ，用于选择一项；
+   </p>
+  </li>
+  <li>
+   <p>
+    复选框，对应的
+    <code>
+     &lt;input type="checkbox"&gt;
+    </code>
+    ，用于选择多项；
+   </p>
+  </li>
+  <li>
+   <p>
+    下拉框，对应的
+    <code>
+     &lt;select&gt;
+    </code>
+    ，用于选择一项；
+   </p>
+  </li>
+  <li>
+   <p>
+    隐藏文本，对应的
+    <code>
+     &lt;input type="hidden"&gt;
+    </code>
+    ，用户不可见，但表单提交时会把隐藏文本发送到服务器。
+   </p>
+  </li>
+ </ul>
+ <h3>
+  获取值
+ </h3>
+ <p>
+  如果我们获得了一个
+  <code>
+   &lt;input&gt;
+  </code>
+  节点的引用，就可以直接调用
+  <code>
+   value
+  </code>
+  获得对应的用户输入值：
+ </p>
+ <pre><code>// &lt;input type="text" id="email"&gt;
+var input = document.getElementById('email');
+input.value; // '用户输入的值'
+</code></pre>
+ <p>
+  这种方式可以应用于
+  <code>
+   text
+  </code>
+  、
+  <code>
+   password
+  </code>
+  、
+  <code>
+   hidden
+  </code>
+  以及
+  <code>
+   select
+  </code>
+  。但是，对于单选框和复选框，
+  <code>
+   value
+  </code>
+  属性返回的永远是HTML预设的值，而我们需要获得的实际是用户是否“勾上了”选项，所以应该用
+  <code>
+   checked
+  </code>
+  判断：
+ </p>
+ <pre><code>// &lt;label&gt;&lt;input type="radio" name="weekday" id="monday" value="1"&gt; Monday&lt;/label&gt;
+// &lt;label&gt;&lt;input type="radio" name="weekday" id="tuesday" value="2"&gt; Tuesday&lt;/label&gt;
+var mon = document.getElementById('monday');
+var tue = document.getElementById('tuesday');
+mon.value; // '1'
+tue.value; // '2'
+mon.checked; // true或者false
+tue.checked; // true或者false
+</code></pre>
+ <h3>
+  设置值
+ </h3>
+ <p>
+  设置值和获取值类似，对于
+  <code>
+   text
+  </code>
+  、
+  <code>
+   password
+  </code>
+  、
+  <code>
+   hidden
+  </code>
+  以及
+  <code>
+   select
+  </code>
+  ，直接设置
+  <code>
+   value
+  </code>
+  就可以：
+ </p>
+ <pre><code>// &lt;input type="text" id="email"&gt;
+var input = document.getElementById('email');
+input.value = 'test@example.com'; // 文本框的内容已更新
+</code></pre>
+ <p>
+  对于单选框和复选框，设置
+  <code>
+   checked
+  </code>
+  为
+  <code>
+   true
+  </code>
+  或
+  <code>
+   false
+  </code>
+  即可。
+ </p>
+ <h3>
+  HTML5控件
+ </h3>
+ <p>
+  HTML5新增了大量标准控件，常用的包括
+  <code>
+   date
+  </code>
+  、
+  <code>
+   datetime
+  </code>
+  、
+  <code>
+   datetime-local
+  </code>
+  、
+  <code>
+   color
+  </code>
+  等，它们都使用
+  <code>
+   &lt;input&gt;
+  </code>
+  标签：
+ </p>
+ <pre><code>&lt;input type="date" value="2015-07-01"&gt;
+</code></pre>
+ <input type="date" value="2015-07-01"/>
+ <pre><code>&lt;input type="datetime-local" value="2015-07-01T02:03:04"&gt;
+</code></pre>
+ <input type="datetime-local" value="2015-07-01T02:03:04"/>
+ <pre><code>&lt;input type="color" value="#ff0000"&gt;
+</code></pre>
+ <input type="color" value="#ff0000"/>
+ <p>
+  不支持HTML5的浏览器无法识别新的控件，会把它们当做
+  <code>
+   type="text"
+  </code>
+  来显示。支持HTML5的浏览器将获得格式化的字符串。例如，
+  <code>
+   type="date"
+  </code>
+  类型的
+  <code>
+   input
+  </code>
+  的
+  <code>
+   value
+  </code>
+  将保证是一个有效的
+  <code>
+   YYYY-MM-DD
+  </code>
+  格式的日期，或者空字符串。
+ </p>
+ <h3>
+  提交表单
+ </h3>
+ <p>
+  最后，JavaScript可以以两种方式来处理表单的提交（AJAX方式在后面章节介绍）。
+ </p>
+ <p>
+  方式一是通过
+  <code>
+   &lt;form&gt;
+  </code>
+  元素的
+  <code>
+   submit()
+  </code>
+  方法提交一个表单，例如，响应一个
+  <code>
+   &lt;button&gt;
+  </code>
+  的
+  <code>
+   click
+  </code>
+  事件，在JavaScript代码中提交表单：
+ </p>
+ <pre><code>&lt;!-- HTML --&gt;
+&lt;form id="test-form"&gt;
+    &lt;input type="text" name="test"&gt;
+    &lt;button type="button" onclick="doSubmitForm()"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+function doSubmitForm() {
+    var form = document.getElementById('test-form');
+    // 可以在此修改form的input...
+    // 提交form:
+    form.submit();
+}
+&lt;/script&gt;
+</code></pre>
+ <p>
+  这种方式的缺点是扰乱了浏览器对form的正常提交。浏览器默认点击
+  <code>
+   &lt;button type="submit"&gt;
+  </code>
+  时提交表单，或者用户在最后一个输入框按回车键。因此，第二种方式是响应
+  <code>
+   &lt;form&gt;
+  </code>
+  本身的
+  <code>
+   onsubmit
+  </code>
+  事件，在提交form时作修改：
+ </p>
+ <pre><code>&lt;!-- HTML --&gt;
+&lt;form id="test-form" onsubmit="return checkForm()"&gt;
+    &lt;input type="text" name="test"&gt;
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+function checkForm() {
+    var form = document.getElementById('test-form');
+    // 可以在此修改form的input...
+    // 继续下一步:
+    return true;
+}
+&lt;/script&gt;
+</code></pre>
+ <p>
+  注意要
+  <code>
+   return true
+  </code>
+  来告诉浏览器继续提交，如果
+  <code>
+   return false
+  </code>
+  ，浏览器将不会继续提交form，这种情况通常对应用户输入有误，提示用户错误信息后终止提交form。
+ </p>
+ <p>
+  在检查和修改
+  <code>
+   &lt;input&gt;
+  </code>
+  时，要充分利用
+  <code>
+   &lt;input type="hidden"&gt;
+  </code>
+  来传递数据。
+ </p>
+ <p>
+  例如，很多登录表单希望用户输入用户名和口令，但是，安全考虑，提交表单时不传输明文口令，而是口令的MD5。普通JavaScript开发人员会直接修改
+  <code>
+   &lt;input&gt;
+  </code>
+  ：
+ </p>
+ <pre><code>&lt;!-- HTML --&gt;
+&lt;form id="login-form" method="post" onsubmit="return checkForm()"&gt;
+    &lt;input type="text" id="username" name="username"&gt;
+    &lt;input type="password" id="password" name="password"&gt;
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+function checkForm() {
+    var pwd = document.getElementById('password');
+    // 把用户输入的明文变为MD5:
+    pwd.value = toMD5(pwd.value);
+    // 继续下一步:
+    return true;
+}
+&lt;/script&gt;
+</code></pre>
+ <p>
+  这个做法看上去没啥问题，但用户输入了口令提交时，口令框的显示会突然从几个
+  <code>
+   *
+  </code>
+  变成32个
+  <code>
+   *
+  </code>
+  （因为MD5有32个字符）。
+ </p>
+ <p>
+  要想不改变用户的输入，可以利用
+  <code>
+   &lt;input type="hidden"&gt;
+  </code>
+  实现：
+ </p>
+ <pre><code>&lt;!-- HTML --&gt;
+&lt;form id="login-form" method="post" onsubmit="return checkForm()"&gt;
+    &lt;input type="text" id="username" name="username"&gt;
+    &lt;input type="password" id="input-password"&gt;
+    &lt;input type="hidden" id="md5-password" name="password"&gt;
+    &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+function checkForm() {
+    var input_pwd = document.getElementById('input-password');
+    var md5_pwd = document.getElementById('md5-password');
+    // 把用户输入的明文变为MD5:
+    md5_pwd.value = toMD5(input_pwd.value);
+    // 继续下一步:
+    return true;
+}
+&lt;/script&gt;
+</code></pre>
+ <p>
+  注意到
+  <code>
+   id
+  </code>
+  为
+  <code>
+   md5-password
+  </code>
+  的
+  <code>
+   &lt;input&gt;
+  </code>
+  标记了
+  <code>
+   name="password"
+  </code>
+  ，而用户输入的
+  <code>
+   id
+  </code>
+  为
+  <code>
+   input-password
+  </code>
+  的
+  <code>
+   &lt;input&gt;
+  </code>
+  没有
+  <code>
+   name
+  </code>
+  属性。没有
+  <code>
+   name
+  </code>
+  属性的
+  <code>
+   &lt;input&gt;
+  </code>
+  的数据不会被提交。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  利用JavaScript检查用户注册信息是否正确，在以下情况不满足时报错并阻止提交表单：
+ </p>
+ <ul>
+  <li>
+   <p>
+    用户名必须是3-10位英文字母或数字；
+   </p>
+  </li>
+  <li>
+   <p>
+    口令必须是6-20位；
+   </p>
+  </li>
+  <li>
+   <p>
+    两次输入口令必须一致。
+   </p>
+  </li>
+ </ul>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;form id="test-register" action="#" target="_blank" onsubmit="return checkRegisterForm()"&gt;
+    &lt;p id="test-error" style="color:red"&gt;&lt;/p&gt;
+    &lt;p&gt;
+        用户名: &lt;input type="text" id="username" name="username"&gt;
+    &lt;/p&gt;
+    &lt;p&gt;
+        口令: &lt;input type="password" id="password" name="password"&gt;
+    &lt;/p&gt;
+    &lt;p&gt;
+        重复口令: &lt;input type="password" id="password-2"&gt;
+    &lt;/p&gt;
+    &lt;p&gt;
+        &lt;button type="submit"&gt;提交&lt;/button&gt; &lt;button type="reset"&gt;重置&lt;/button&gt;
+    &lt;/p&gt;
+&lt;/form&gt;
+</code></pre>
+ <form action="#test-submit" id="test-register" onsubmit="return checkForm()" target="_blank">
+  <p id="test-error" style="color:red">
+  </p>
+  <p>
+   用户名:
+   <input id="username" name="username" type="text"/>
+  </p>
+  <p>
+   口令:
+   <input id="password" name="password" type="password"/>
+  </p>
+  <p>
+   重复口令:
+   <input id="password-2" type="password"/>
+  </p>
+  <p>
+   <button type="submit">
+    提交
+   </button>
+   <button type="reset">
+    重置
+   </button>
+  </p>
+ </form>
+ <script>
+  window.testFormHandler = function () {
+    return false;
+}
+
+function checkForm() {
+    var r = window.testFormHandler();
+    if (r === false) {
+        console.log('checkRegisterForm() return false!');
+    } else {
+        alert('Form可以正常提交！');
+    }
+    return r;
+}
+ </script>
+ <pre><code class="language-x-javascript">'use strict';
+var checkRegisterForm = function () {
+----
+    // TODO:
+    return false;
+}
+----
+// 测试:
+;(function () {
+    window.testFormHandler = checkRegisterForm;
+    var form = document.getElementById('test-register');
+    if (form.dispatchEvent) {
+        var event = new Event('submit', {
+    		bubbles: true,
+    		cancelable: true
+  		});
+        form.dispatchEvent(event);
+    } else {
+        form.fireEvent('onsubmit');
+    }
+})();
+</code></pre>
+</div>
+</body></html>

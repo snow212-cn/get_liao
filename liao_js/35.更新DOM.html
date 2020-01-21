@@ -1,0 +1,135 @@
+<html><head><meta charset="utf-8"/><title>更新DOM</title></head><body><h1>更新DOM</h1><div class="x-wiki-content x-main-content">
+ <p>
+  拿到一个DOM节点后，我们可以对它进行更新。
+ </p>
+ <p>
+  可以直接修改节点的文本，方法有两种：
+ </p>
+ <p>
+  一种是修改
+  <code>
+   innerHTML
+  </code>
+  属性，这个方式非常强大，不但可以修改一个DOM节点的文本内容，还可以直接通过HTML片段修改DOM节点内部的子树：
+ </p>
+ <pre><code>// 获取&lt;p id="p-id"&gt;...&lt;/p&gt;
+var p = document.getElementById('p-id');
+// 设置文本为abc:
+p.innerHTML = 'ABC'; // &lt;p id="p-id"&gt;ABC&lt;/p&gt;
+// 设置HTML:
+p.innerHTML = 'ABC &lt;span style="color:red"&gt;RED&lt;/span&gt; XYZ';
+// &lt;p&gt;...&lt;/p&gt;的内部结构已修改
+</code></pre>
+ <p>
+  用
+  <code>
+   innerHTML
+  </code>
+  时要注意，是否需要写入HTML。如果写入的字符串是通过网络拿到了，要注意对字符编码来避免XSS攻击。
+ </p>
+ <p>
+  第二种是修改
+  <code>
+   innerText
+  </code>
+  或
+  <code>
+   textContent
+  </code>
+  属性，这样可以自动对字符串进行HTML编码，保证无法设置任何HTML标签：
+ </p>
+ <pre><code>// 获取&lt;p id="p-id"&gt;...&lt;/p&gt;
+var p = document.getElementById('p-id');
+// 设置文本:
+p.innerText = '&lt;script&gt;alert("Hi")&lt;/script&gt;';
+// HTML被自动编码，无法设置一个&lt;script&gt;节点:
+// &lt;p id="p-id"&gt;&amp;lt;script&amp;gt;alert("Hi")&amp;lt;/script&amp;gt;&lt;/p&gt;
+</code></pre>
+ <p>
+  两者的区别在于读取属性时，
+  <code>
+   innerText
+  </code>
+  不返回隐藏元素的文本，而
+  <code>
+   textContent
+  </code>
+  返回所有文本。另外注意IE&lt;9不支持
+  <code>
+   textContent
+  </code>
+  。
+ </p>
+ <p>
+  修改CSS也是经常需要的操作。DOM节点的
+  <code>
+   style
+  </code>
+  属性对应所有的CSS，可以直接获取或设置。因为CSS允许
+  <code>
+   font-size
+  </code>
+  这样的名称，但它并非JavaScript有效的属性名，所以需要在JavaScript中改写为驼峰式命名
+  <code>
+   fontSize
+  </code>
+  ：
+ </p>
+ <pre><code>// 获取&lt;p id="p-id"&gt;...&lt;/p&gt;
+var p = document.getElementById('p-id');
+// 设置CSS:
+p.style.color = '#ff0000';
+p.style.fontSize = '20px';
+p.style.paddingTop = '2em';
+</code></pre>
+ <h3>
+  练习
+ </h3>
+ <p>
+  有如下的HTML结构：
+ </p>
+ <div id="test-div">
+  <p id="test-js">
+   javascript
+  </p>
+  <p>
+   Java
+  </p>
+ </div>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-div"&gt;
+  &lt;p id="test-js"&gt;javascript&lt;/p&gt;
+  &lt;p&gt;Java&lt;/p&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  请尝试获取指定节点并修改：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+// 获取&lt;p&gt;javascript&lt;/p&gt;节点:
+var js = ???;
+
+// 修改文本为JavaScript:
+// TODO:
+
+// 修改CSS为: color: #ff0000, font-weight: bold
+// TODO:
+----
+// 测试:
+if (js &amp;&amp; js.parentNode &amp;&amp; js.parentNode.id === 'test-div' &amp;&amp; js.id === 'test-js') {
+    if (js.innerText === 'JavaScript') {
+        if (js.style &amp;&amp; js.style.fontWeight === 'bold' &amp;&amp; (js.style.color === 'red' || js.style.color === '#ff0000' || js.style.color === '#f00' || js.style.color === 'rgb(255, 0, 0)')) {
+            console.log('测试通过!');
+        } else {
+            console.log('CSS样式测试失败!');
+        }
+    } else {
+        console.log('文本测试失败!');
+    }
+} else {
+    console.log('节点测试失败!');
+}
+</code></pre>
+</div>
+</body></html>

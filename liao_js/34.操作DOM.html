@@ -1,0 +1,236 @@
+<html><head><meta charset="utf-8"/><title>操作DOM</title></head><body><h1>操作DOM</h1><div class="x-wiki-content x-main-content">
+ <p>
+  由于HTML文档被浏览器解析后就是一棵DOM树，要改变HTML的结构，就需要通过JavaScript来操作DOM。
+ </p>
+ <p>
+  始终记住DOM是一个树形结构。操作一个DOM节点实际上就是这么几个操作：
+ </p>
+ <ul>
+  <li>
+   <p>
+    更新：更新该DOM节点的内容，相当于更新了该DOM节点表示的HTML的内容；
+   </p>
+  </li>
+  <li>
+   <p>
+    遍历：遍历该DOM节点下的子节点，以便进行进一步操作；
+   </p>
+  </li>
+  <li>
+   <p>
+    添加：在该DOM节点下新增一个子节点，相当于动态增加了一个HTML节点；
+   </p>
+  </li>
+  <li>
+   <p>
+    删除：将该节点从HTML中删除，相当于删掉了该DOM节点的内容以及它包含的所有子节点。
+   </p>
+  </li>
+ </ul>
+ <p>
+  在操作一个DOM节点前，我们需要通过各种方式先拿到这个DOM节点。最常用的方法是
+  <code>
+   document.getElementById()
+  </code>
+  和
+  <code>
+   document.getElementsByTagName()
+  </code>
+  ，以及CSS选择器
+  <code>
+   document.getElementsByClassName()
+  </code>
+  。
+ </p>
+ <p>
+  由于ID在HTML文档中是唯一的，所以
+  <code>
+   document.getElementById()
+  </code>
+  可以直接定位唯一的一个DOM节点。
+  <code>
+   document.getElementsByTagName()
+  </code>
+  和
+  <code>
+   document.getElementsByClassName()
+  </code>
+  总是返回一组DOM节点。要精确地选择DOM，可以先定位父节点，再从父节点开始选择，以缩小范围。
+ </p>
+ <p>
+  例如：
+ </p>
+ <pre><code>// 返回ID为'test'的节点：
+var test = document.getElementById('test');
+
+// 先定位ID为'test-table'的节点，再返回其内部所有tr节点：
+var trs = document.getElementById('test-table').getElementsByTagName('tr');
+
+// 先定位ID为'test-div'的节点，再返回其内部所有class包含red的节点：
+var reds = document.getElementById('test-div').getElementsByClassName('red');
+
+// 获取节点test下的所有直属子节点:
+var cs = test.children;
+
+// 获取节点test下第一个、最后一个子节点：
+var first = test.firstElementChild;
+var last = test.lastElementChild;
+</code></pre>
+ <p>
+  第二种方法是使用
+  <code>
+   querySelector()
+  </code>
+  和
+  <code>
+   querySelectorAll()
+  </code>
+  ，需要了解selector语法，然后使用条件来获取节点，更加方便：
+ </p>
+ <pre><code>// 通过querySelector获取ID为q1的节点：
+var q1 = document.querySelector('#q1');
+
+// 通过querySelectorAll获取q1节点内的符合条件的所有节点：
+var ps = q1.querySelectorAll('div.highlighted &gt; p');
+</code></pre>
+ <p>
+  注意：低版本的IE&lt;8不支持
+  <code>
+   querySelector
+  </code>
+  和
+  <code>
+   querySelectorAll
+  </code>
+  。IE8仅有限支持。
+ </p>
+ <p>
+  严格地讲，我们这里的DOM节点是指
+  <code>
+   Element
+  </code>
+  ，但是DOM节点实际上是
+  <code>
+   Node
+  </code>
+  ，在HTML中，
+  <code>
+   Node
+  </code>
+  包括
+  <code>
+   Element
+  </code>
+  、
+  <code>
+   Comment
+  </code>
+  、
+  <code>
+   CDATA_SECTION
+  </code>
+  等很多种，以及根节点
+  <code>
+   Document
+  </code>
+  类型，但是，绝大多数时候我们只关心
+  <code>
+   Element
+  </code>
+  ，也就是实际控制页面结构的
+  <code>
+   Node
+  </code>
+  ，其他类型的
+  <code>
+   Node
+  </code>
+  忽略即可。根节点
+  <code>
+   Document
+  </code>
+  已经自动绑定为全局变量
+  <code>
+   document
+  </code>
+  。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  如下的HTML结构：
+ </p>
+ <div id="test-div">
+  <div class="c-red">
+   <p id="test-p">
+    JavaScript
+   </p>
+   <p>
+    Java
+   </p>
+  </div>
+  <div class="c-red c-green">
+   <p>
+    Python
+   </p>
+   <p>
+    Ruby
+   </p>
+   <p>
+    Swift
+   </p>
+  </div>
+  <div class="c-green">
+   <p>
+    Scheme
+   </p>
+   <p>
+    Haskell
+   </p>
+  </div>
+ </div>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div id="test-div"&gt;
+&lt;div class="c-red"&gt;
+    &lt;p id="test-p"&gt;JavaScript&lt;/p&gt;
+    &lt;p&gt;Java&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="c-red c-green"&gt;
+    &lt;p&gt;Python&lt;/p&gt;
+    &lt;p&gt;Ruby&lt;/p&gt;
+    &lt;p&gt;Swift&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="c-green"&gt;
+    &lt;p&gt;Scheme&lt;/p&gt;
+    &lt;p&gt;Haskell&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  请选择出指定条件的节点：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+----
+// 选择&lt;p&gt;JavaScript&lt;/p&gt;:
+var js = ???;
+
+// 选择&lt;p&gt;Python&lt;/p&gt;,&lt;p&gt;Ruby&lt;/p&gt;,&lt;p&gt;Swift&lt;/p&gt;:
+var arr = ???;
+
+// 选择&lt;p&gt;Haskell&lt;/p&gt;:
+var haskell = ???;
+----
+// 测试:
+if (!js || js.innerText !== 'JavaScript') {
+    alert('选择JavaScript失败!');
+} else if (!arr || arr.length !== 3 || !arr[0] || !arr[1] || !arr[2] || arr[0].innerText !== 'Python' || arr[1].innerText !== 'Ruby' || arr[2].innerText !== 'Swift') {
+    console.log('选择Python,Ruby,Swift失败!');
+} else if (!haskell || haskell.innerText !== 'Haskell') {
+    console.log('选择Haskell失败!');
+} else {
+    console.log('测试通过!');
+}
+</code></pre>
+</div>
+</body></html>

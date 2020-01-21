@@ -1,0 +1,320 @@
+<html><head><meta charset="utf-8"/><title>层级选择器</title></head><body><h1>层级选择器</h1><div class="x-wiki-content x-main-content">
+ <p>
+  除了基本的选择器外，jQuery的层级选择器更加灵活，也更强大。
+ </p>
+ <p>
+  因为DOM的结构就是层级结构，所以我们经常要根据层级关系进行选择。
+ </p>
+ <h3>
+  层级选择器（Descendant Selector）
+ </h3>
+ <p>
+  如果两个DOM元素具有层级关系，就可以用
+  <code>
+   $('ancestor descendant')
+  </code>
+  来选择，层级之间用空格隔开。例如：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+&lt;div class="testing"&gt;
+    &lt;ul class="lang"&gt;
+        &lt;li class="lang-javascript"&gt;JavaScript&lt;/li&gt;
+        &lt;li class="lang-python"&gt;Python&lt;/li&gt;
+        &lt;li class="lang-lua"&gt;Lua&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  要选出JavaScript，可以用层级选择器：
+ </p>
+ <pre><code>$('ul.lang li.lang-javascript'); // [&lt;li class="lang-javascript"&gt;JavaScript&lt;/li&gt;]
+$('div.testing li.lang-javascript'); // [&lt;li class="lang-javascript"&gt;JavaScript&lt;/li&gt;]
+</code></pre>
+ <p>
+  因为
+  <code>
+   &lt;div&gt;
+  </code>
+  和
+  <code>
+   &lt;ul&gt;
+  </code>
+  都是
+  <code>
+   &lt;li&gt;
+  </code>
+  的祖先节点，所以上面两种方式都可以选出相应的
+  <code>
+   &lt;li&gt;
+  </code>
+  节点。
+ </p>
+ <p>
+  要选择所有的
+  <code>
+   &lt;li&gt;
+  </code>
+  节点，用：
+ </p>
+ <pre><code>$('ul.lang li');
+</code></pre>
+ <p>
+  这种层级选择器相比单个的选择器好处在于，它缩小了选择范围，因为首先要定位父节点，才能选择相应的子节点，这样避免了页面其他不相关的元素。
+ </p>
+ <p>
+  例如：
+ </p>
+ <pre><code>$('form[name=upload] input');
+</code></pre>
+ <p>
+  就把选择范围限定在
+  <code>
+   name
+  </code>
+  属性为
+  <code>
+   upload
+  </code>
+  的表单里。如果页面有很多表单，其他表单的
+  <code>
+   &lt;input&gt;
+  </code>
+  不会被选择。
+ </p>
+ <p>
+  多层选择也是允许的：
+ </p>
+ <pre><code>$('form.test p input'); // 在form表单选择被&lt;p&gt;包含的&lt;input&gt;
+</code></pre>
+ <h3>
+  子选择器（Child Selector）
+ </h3>
+ <p>
+  子选择器
+  <code>
+   $('parent&gt;child')
+  </code>
+  类似层级选择器，但是限定了层级关系必须是父子关系，就是
+  <code>
+   &lt;child&gt;
+  </code>
+  节点必须是
+  <code>
+   &lt;parent&gt;
+  </code>
+  节点的直属子节点。还是以上面的例子：
+ </p>
+ <pre><code>$('ul.lang&gt;li.lang-javascript'); // 可以选出[&lt;li class="lang-javascript"&gt;JavaScript&lt;/li&gt;]
+$('div.testing&gt;li.lang-javascript'); // [], 无法选出，因为&lt;div&gt;和&lt;li&gt;不构成父子关系
+</code></pre>
+ <h3>
+  过滤器（Filter）
+ </h3>
+ <p>
+  过滤器一般不单独使用，它通常附加在选择器上，帮助我们更精确地定位元素。观察过滤器的效果：
+ </p>
+ <pre><code>$('ul.lang li'); // 选出JavaScript、Python和Lua 3个节点
+
+$('ul.lang li:first-child'); // 仅选出JavaScript
+$('ul.lang li:last-child'); // 仅选出Lua
+$('ul.lang li:nth-child(2)'); // 选出第N个元素，N从1开始
+$('ul.lang li:nth-child(even)'); // 选出序号为偶数的元素
+$('ul.lang li:nth-child(odd)'); // 选出序号为奇数的元素
+</code></pre>
+ <h3>
+  表单相关
+ </h3>
+ <p>
+  针对表单元素，jQuery还有一组特殊的选择器：
+ </p>
+ <ul>
+  <li>
+   <p>
+    <code>
+     :input
+    </code>
+    ：可以选择
+    <code>
+     &lt;input&gt;
+    </code>
+    ，
+    <code>
+     &lt;textarea&gt;
+    </code>
+    ，
+    <code>
+     &lt;select&gt;
+    </code>
+    和
+    <code>
+     &lt;button&gt;
+    </code>
+    ；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :file
+    </code>
+    ：可以选择
+    <code>
+     &lt;input type="file"&gt;
+    </code>
+    ，和
+    <code>
+     input[type=file]
+    </code>
+    一样；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :checkbox
+    </code>
+    ：可以选择复选框，和
+    <code>
+     input[type=checkbox]
+    </code>
+    一样；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :radio
+    </code>
+    ：可以选择单选框，和
+    <code>
+     input[type=radio]
+    </code>
+    一样；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :focus
+    </code>
+    ：可以选择当前输入焦点的元素，例如把光标放到一个
+    <code>
+     &lt;input&gt;
+    </code>
+    上，用
+    <code>
+     $('input:focus')
+    </code>
+    就可以选出；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :checked
+    </code>
+    ：选择当前勾上的单选框和复选框，用这个选择器可以立刻获得用户选择的项目，如
+    <code>
+     $('input[type=radio]:checked')
+    </code>
+    ；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :enabled
+    </code>
+    ：可以选择可以正常输入的
+    <code>
+     &lt;input&gt;
+    </code>
+    、
+    <code>
+     &lt;select&gt;
+    </code>
+    等，也就是没有灰掉的输入；
+   </p>
+  </li>
+  <li>
+   <p>
+    <code>
+     :disabled
+    </code>
+    ：和
+    <code>
+     :enabled
+    </code>
+    正好相反，选择那些不能输入的。
+   </p>
+  </li>
+ </ul>
+ <p>
+  此外，jQuery还有很多有用的选择器，例如，选出可见的或隐藏的元素：
+ </p>
+ <pre><code>$('div:visible'); // 所有可见的div
+$('div:hidden'); // 所有隐藏的div
+</code></pre>
+ <h3>
+  练习
+ </h3>
+ <p>
+  针对如下HTML结构：
+ </p>
+ <pre><code>&lt;!-- HTML结构 --&gt;
+
+&lt;div class="test-selector"&gt;
+    &lt;ul class="test-lang"&gt;
+        &lt;li class="lang-javascript"&gt;JavaScript&lt;/li&gt;
+        &lt;li class="lang-python"&gt;Python&lt;/li&gt;
+        &lt;li class="lang-lua"&gt;Lua&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;ol class="test-lang"&gt;
+        &lt;li class="lang-swift"&gt;Swift&lt;/li&gt;
+        &lt;li class="lang-java"&gt;Java&lt;/li&gt;
+        &lt;li class="lang-c"&gt;C&lt;/li&gt;
+    &lt;/ol&gt;
+&lt;/div&gt;
+</code></pre>
+ <p>
+  选出相应的内容并观察效果：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+var selected = null;
+----
+// 分别选择所有语言，所有动态语言，所有静态语言，JavaScript，Lua，C等:
+selected = ???
+----
+// 高亮结果:
+if (!(selected instanceof jQuery)) {
+    return console.log('不是有效的jQuery对象!');
+}
+$('#test-jquery').find('*').css('background-color', '');
+selected.css('background-color', '#ffd351');
+</code></pre>
+ <div class="test-selector" id="test-jquery">
+  <ul class="test-lang">
+   <li class="lang-javascript">
+    JavaScript
+   </li>
+   <li class="lang-python">
+    Python
+   </li>
+   <li class="lang-lua">
+    Lua
+   </li>
+  </ul>
+  <ol class="test-lang">
+   <li class="lang-swift">
+    Swift
+   </li>
+   <li class="lang-java">
+    Java
+   </li>
+   <li class="lang-c">
+    C
+   </li>
+  </ol>
+ </div>
+</div>
+</body></html>

@@ -1,0 +1,269 @@
+<html><head><meta charset="utf-8"/><title>class继承</title></head><body><h1>class继承</h1><div class="x-wiki-content x-main-content">
+ <p>
+  在上面的章节中我们看到了JavaScript的对象模型是基于原型实现的，特点是简单，缺点是理解起来比传统的类－实例模型要困难，最大的缺点是继承的实现需要编写大量代码，并且需要正确实现原型链。
+ </p>
+ <p>
+  有没有更简单的写法？有！
+ </p>
+ <p>
+  新的关键字
+  <code>
+   class
+  </code>
+  从ES6开始正式被引入到JavaScript中。
+  <code>
+   class
+  </code>
+  的目的就是让定义类更简单。
+ </p>
+ <p>
+  我们先回顾用函数实现
+  <code>
+   Student
+  </code>
+  的方法：
+ </p>
+ <pre><code>function Student(name) {
+    this.name = name;
+}
+
+Student.prototype.hello = function () {
+    alert('Hello, ' + this.name + '!');
+}
+</code></pre>
+ <p>
+  如果用新的
+  <code>
+   class
+  </code>
+  关键字来编写
+  <code>
+   Student
+  </code>
+  ，可以这样写：
+ </p>
+ <pre><code>class Student {
+    constructor(name) {
+        this.name = name;
+    }
+
+    hello() {
+        alert('Hello, ' + this.name + '!');
+    }
+}
+</code></pre>
+ <p>
+  比较一下就可以发现，
+  <code>
+   class
+  </code>
+  的定义包含了构造函数
+  <code>
+   constructor
+  </code>
+  和定义在原型对象上的函数
+  <code>
+   hello()
+  </code>
+  （注意没有
+  <code>
+   function
+  </code>
+  关键字），这样就避免了
+  <code>
+   Student.prototype.hello = function () {...}
+  </code>
+  这样分散的代码。
+ </p>
+ <p>
+  最后，创建一个
+  <code>
+   Student
+  </code>
+  对象代码和前面章节完全一样：
+ </p>
+ <pre><code>var xiaoming = new Student('小明');
+xiaoming.hello();
+</code></pre>
+ <h3>
+  class继承
+ </h3>
+ <p>
+  用
+  <code>
+   class
+  </code>
+  定义对象的另一个巨大的好处是继承更方便了。想一想我们从
+  <code>
+   Student
+  </code>
+  派生一个
+  <code>
+   PrimaryStudent
+  </code>
+  需要编写的代码量。现在，原型继承的中间对象，原型对象的构造函数等等都不需要考虑了，直接通过
+  <code>
+   extends
+  </code>
+  来实现：
+ </p>
+ <pre><code>class PrimaryStudent extends Student {
+    constructor(name, grade) {
+        super(name); // 记得用super调用父类的构造方法!
+        this.grade = grade;
+    }
+
+    myGrade() {
+        alert('I am at grade ' + this.grade);
+    }
+}
+
+</code></pre>
+ <p>
+  注意
+  <code>
+   PrimaryStudent
+  </code>
+  的定义也是class关键字实现的，而
+  <code>
+   extends
+  </code>
+  则表示原型链对象来自
+  <code>
+   Student
+  </code>
+  。子类的构造函数可能会与父类不太相同，例如，
+  <code>
+   PrimaryStudent
+  </code>
+  需要
+  <code>
+   name
+  </code>
+  和
+  <code>
+   grade
+  </code>
+  两个参数，并且需要通过
+  <code>
+   super(name)
+  </code>
+  来调用父类的构造函数，否则父类的
+  <code>
+   name
+  </code>
+  属性无法正常初始化。
+ </p>
+ <p>
+  <code>
+   PrimaryStudent
+  </code>
+  已经自动获得了父类
+  <code>
+   Student
+  </code>
+  的
+  <code>
+   hello
+  </code>
+  方法，我们又在子类中定义了新的
+  <code>
+   myGrade
+  </code>
+  方法。
+ </p>
+ <p>
+  ES6引入的
+  <code>
+   class
+  </code>
+  和原有的JavaScript原型继承有什么区别呢？实际上它们没有任何区别，
+  <code>
+   class
+  </code>
+  的作用就是让JavaScript引擎去实现原来需要我们自己编写的原型链代码。简而言之，用
+  <code>
+   class
+  </code>
+  的好处就是极大地简化了原型链代码。
+ </p>
+ <p>
+  你一定会问，
+  <code>
+   class
+  </code>
+  这么好用，能不能现在就用上？
+ </p>
+ <p>
+  现在用还早了点，因为不是所有的主流浏览器都支持ES6的class。如果一定要现在就用上，就需要一个工具把
+  <code>
+   class
+  </code>
+  代码转换为传统的
+  <code>
+   prototype
+  </code>
+  代码，可以试试
+  <a href="https://babeljs.io/">
+   Babel
+  </a>
+  这个工具。
+ </p>
+ <h3>
+  练习
+ </h3>
+ <p>
+  请利用
+  <code>
+   class
+  </code>
+  重新定义
+  <code>
+   Cat
+  </code>
+  ，并让它从已有的
+  <code>
+   Animal
+  </code>
+  继承，然后新增一个方法
+  <code>
+   say()
+  </code>
+  ，返回字符串
+  <code>
+   'Hello, xxx!'
+  </code>
+  ：
+ </p>
+ <pre><code class="language-x-javascript">'use strict';
+
+class Animal {
+    constructor(name) {
+        this.name = name;
+    }
+}
+----
+class Cat ???
+----
+// 测试:
+var kitty = new Cat('Kitty');
+var doraemon = new Cat('哆啦A梦');
+if ((new Cat('x') instanceof Animal) &amp;&amp; kitty &amp;&amp; kitty.name === 'Kitty' &amp;&amp; kitty.say &amp;&amp; typeof kitty.say === 'function' &amp;&amp; kitty.say() === 'Hello, Kitty!' &amp;&amp; kitty.say === doraemon.say) {
+    console.log('测试通过!');
+} else {
+    console.log('测试失败!');
+}
+</code></pre>
+ <p>
+  这个练习需要浏览器支持ES6的
+  <code>
+   class
+  </code>
+  ，如果遇到SyntaxError，则说明浏览器不支持
+  <code>
+   class
+  </code>
+  语法，请换一个最新的浏览器试试。
+ </p>
+</div>
+</body></html>
